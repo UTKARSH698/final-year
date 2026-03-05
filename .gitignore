@@ -20,6 +20,9 @@ data/
 .env.local
 .env.*.local
 
+# Claude Code local settings
+.claude/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
