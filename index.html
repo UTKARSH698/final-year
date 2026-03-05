@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgriFuture India — AI Crop Intelligence</title>
+    <meta name="description" content="AI-powered crop recommendation, disease detection, and farm management for Indian farmers." />
+    <meta name="theme-color" content="#D4AF37" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AgriFuture" />
+    <link rel="manifest" href="/manifest.json" />
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- PDF Library - html2pdf.js bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              obsidian: '#050505',
+              charcoal: '#121212',
+              gold: {
+                DEFAULT: '#D4AF37',
+                dim: '#8A7030',
+                light: '#F4E4BC',
+              },
+              ivory: '#FFFCF5',
+              espresso: '#1B1816',
+              taupe: '#635D5A',
+              emerald: {
+                500: '#10B981',
+                700: '#047857',
+                900: '#064E3B',
+              },
+              bronze: '#B08B5A',
+              'light-heading': '#111827',
+              'light-body': '#4B5563',
+            },
+            fontFamily: {
+              outfit: ['Outfit', 'sans-serif'],
+              inter: ['Inter', 'sans-serif'],
+              jakarta: ['Plus Jakarta Sans', 'sans-serif'],
+            },
+            animation: {
+              'spin-slow': 'spin 12s linear infinite',
+              'spin-super-fast': 'spin 0.5s linear infinite',
+              'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'marquee': 'marquee 45s linear infinite',
+              'scan': 'scan 3s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+              'drift-1': 'drift1 15s ease-in-out infinite alternate',
+              'drift-2': 'drift2 18s ease-in-out infinite alternate-reverse',
+              'drift-3': 'drift3 14s ease-in-out infinite alternate',
+              'drift-4': 'drift4 20s ease-in-out infinite alternate-reverse',
+              'drop': 'drop 2s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+              'ripple': 'ripple 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+              'sway': 'sway 5s ease-in-out infinite',
+              'hover': 'hover 6s ease-in-out infinite',
+              'float': 'float 7s ease-in-out infinite',
+            },
+            keyframes: {
+              drift1: { '0%': { transform: 'translate(0, 0) rotate(0deg)' }, '100%': { transform: 'translate(15px, -20px) rotate(3deg)' } },
+              drift2: { '0%': { transform: 'translate(0, 0) rotate(0deg)' }, '100%': { transform: 'translate(-15px, -25px) rotate(-3deg)' } },
+              drift3: { '0%': { transform: 'translate(0, 0) rotate(0deg)' }, '100%': { transform: 'translate(-20px, 15px) rotate(2deg)' } },
+              drift4: { '0%': { transform: 'translate(0, 0) rotate(0deg)' }, '100%': { transform: 'translate(20px, 20px) rotate(-2deg)' } },
+              marquee: { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-100%)' } },
+              scan: { '0%': { top: '0%', opacity: 0 }, '20%': { opacity: 1 }, '80%': { opacity: 1 }, '100%': { top: '100%', opacity: 0 } },
+              drop: { '0%': { transform: 'translateY(0)', opacity: 1 }, '80%': { opacity: 1 }, '100%': { transform: 'translateY(60px)', opacity: 0 } },
+              ripple: { '0%': { transform: 'scale(0.8)', opacity: 1 }, '100%': { transform: 'scale(2.5)', opacity: 0 } },
+              sway: { '0%, 100%': { transform: 'rotate(-4deg)' }, '50%': { transform: 'rotate(4deg)' } },
+              hover: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-12px)' } },
+              float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #D4AF37; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #B08B5A; }
+      .bg-noise { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); }
+      .preserve-3d { transform-style: preserve-3d; }
+      .perspective-1000 { perspective: 1000px; }
+      .backface-hidden { backface-visibility: hidden; }
+      .rotate-y-180 { transform: rotateY(180deg); }
+      html { scroll-behavior: smooth; }
+
+      /* --- NUCLEAR PDF EXPORT STYLES --- */
+      /* These classes strip problematic CSS that causes blank pages in html2canvas */
+      .pdf-export-mode {
+        background: #050505 !important; /* Force solid background */
+        color: white !important;
+        padding: 40px !important;
+        width: 1000px !important; /* Fixed width for better scaling */
+        display: block !important;
+        position: relative !important;
+      }
+      .pdf-export-mode * {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        filter: none !important;
+        box-shadow: none !important;
+        transition: none !important;
+        animation: none !important;
+        transform: none !important;
+      }
+      .pdf-export-mode .bg-obsidian\/40 { background-color: rgba(5, 5, 5, 0.95) !important; }
+      .pdf-export-mode .bg-white\/5 { background-color: rgba(255, 255, 255, 0.1) !important; }
+      .pdf-export-mode .bg-emerald-500\/5 { background-color: rgba(16, 185, 129, 0.1) !important; }
+      .pdf-export-mode .bg-ivory { background-color: #FFFCF5 !important; }
+      .pdf-export-mode .text-gray-900 { color: #111827 !important; }
+      .pdf-export-mode .dark .text-white { color: white !important; }
+
+      @media print {
+        .no-print { display: none !important; }
+        body { background-color: white !important; }
+      }
+
+      /* Chatbot Markdown Styles */
+      .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+      .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+      .markdown-body p { margin-bottom: 0.5rem; }
+      .markdown-body strong { font-weight: 600; color: inherit; }
+      .markdown-body code { background: rgba(0,0,0,0.1); padding: 0.1rem 0.3rem; rounded: 0.2rem; }
+      .dark .markdown-body code { background: rgba(255,255,255,0.1); }
+    </style>
+    <script type="text/javascript">
+      var configuration = {
+        widgetId: "366241666271323332393133",
+        tokenAuth: "496854TqU79kxifyx69a13efcP1",
+        exposeMethods: true,
+        success: (data) => {
+          console.log('MSG91 Success:', data);
+          window.dispatchEvent(new CustomEvent('msg91-success', { detail: data }));
+        },
+        failure: (error) => {
+          console.log('MSG91 Failure:', error);
+          window.dispatchEvent(new CustomEvent('msg91-failure', { detail: error }));
+        },
+      };
+    </script>
+    <script type="text/javascript">
+      (function loadOtpScript(urls) {
+          let i = 0;
+          function attempt() {
+              const s = document.createElement('script');
+              s.src = urls[i];
+              s.async = true;
+              s.onload = () => {
+                  if (typeof window.initSendOTP === 'function') {
+                      window.initSendOTP(configuration);
+                  }
+              };
+              s.onerror = () => {
+                  i++;
+                  if (i < urls.length) {
+                      attempt();
+                  }
+              };
+              const target = document.head || document.getElementsByTagName('head')[0] || document.body;
+              if (target) {
+                target.appendChild(s);
+              }
+          }
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', attempt);
+          } else {
+            attempt();
+          }
+      })([
+          'https://verify.msg91.com/otp-provider.js',
+          'https://verify.phone91.com/otp-provider.js'
+      ]);
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="antialiased selection:bg-gold selection:text-black overflow-x-hidden transition-colors duration-700 ease-in-out">
+    <div id="root"></div>
+    <div id="msg91-captcha" style="display: none;"></div>
+  <script type="module" src="/index.tsx"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('[PWA] Service Worker registered:', reg.scope))
+          .catch(err => console.warn('[PWA] Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "name": "AgriFuture India",
+  "short_name": "AgriFuture",
+  "description": "AI-powered crop intelligence and farm management for Indian farmers.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#D4AF37",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23050505'/%3E%3Ccircle cx='96' cy='96' r='70' fill='%23D4AF37' opacity='0.15'/%3E%3Cpath d='M96 40 C60 60 50 100 80 120 C90 126 96 140 96 140 C96 140 102 126 112 120 C142 100 132 60 96 40Z' fill='%23D4AF37'/%3E%3Cpath d='M96 60 C80 80 82 110 96 120' stroke='%23050505' stroke-width='3' fill='none'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23050505'/%3E%3Ccircle cx='256' cy='256' r='190' fill='%23D4AF37' opacity='0.15'/%3E%3Cpath d='M256 100 C160 150 130 260 210 310 C235 325 256 370 256 370 C256 370 277 325 302 310 C382 260 352 150 256 100Z' fill='%23D4AF37'/%3E%3Cpath d='M256 160 C216 210 218 290 256 320' stroke='%23050505' stroke-width='8' fill='none'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["agriculture", "productivity", "utilities"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Crop Analysis",
+      "short_name": "Analyse",
+      "description": "Start a new crop soil analysis",
+      "url": "/"
+    },
+    {
+      "name": "Disease Detector",
+      "short_name": "Scan",
+      "description": "Detect crop diseases from leaf photos",
+      "url": "/"
+    }
+  ]
+}

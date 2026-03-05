@@ -1,0 +1,8 @@
+{
+  "name": "AgriFuture Luxe",
+  "description": "A premium, AI-driven crop recommendation and AgriDrone irrigation analysis system for the Indian agricultural sector featuring a cinematic UI.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
