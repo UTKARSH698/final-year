@@ -20,6 +20,9 @@ data/
 .env.local
 .env.*.local
 
+# Compiled server bundle
+server.built.js
+
 # Claude Code local settings
 .claude/
 
