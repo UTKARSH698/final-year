@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction } from "express";
-import { createServer as createViteServer } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
 import Razorpay from "razorpay";
@@ -587,8 +586,9 @@ async function startServer() {
 
   // ─── Vite / Static ───────────────────────────────────────────────────────
   if (!IS_PROD) {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, allowedHosts: "all" },
       appType: "spa",
     });
     app.use(vite.middlewares);
