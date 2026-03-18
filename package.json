@@ -8,20 +8,21 @@
     "start": "node server.built.js",
     "build": "vite build && node_modules/.bin/esbuild server.ts --bundle --platform=node --packages=external --format=esm --outfile=server.built.js",
     "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@google/genai": "^1.41.0",
     "@types/bcryptjs": "^2.4.6",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/cookie-parser": "^1.4.10",
     "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^7.0.11",
+    "@types/pg": "^8.11.14",
     "axios": "^1.13.5",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.6.2",
     "cookie-parser": "^1.4.7",
     "crypto-js": "^4.2.0",
     "express": "^5.2.1",
@@ -29,6 +30,7 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.554.0",
     "nodemailer": "^8.0.1",
+    "pg": "^8.16.0",
     "razorpay": "^2.9.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -37,8 +39,12 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "^3.2.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "supertest": "^7.1.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "vitest": "^3.2.0"
   }
 }
