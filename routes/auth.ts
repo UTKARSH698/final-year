@@ -39,7 +39,7 @@ router.post("/send-otp", otpLimiter, async (req, res) => {
 
   const target = (email || phone) as string;
   const otp = generateOtp();
-  storeOtp(target, otp);
+  await storeOtp(target, otp);
 
   try {
     if (email) {
@@ -79,7 +79,7 @@ router.post("/register", otpLimiter, async (req, res) => {
       return res.status(500).json({ error: "Verification failed" });
     }
   } else {
-    if (!verifyOtp(target, otp))
+    if (!(await verifyOtp(target, otp)))
       return res.status(400).json({ error: "Invalid or expired OTP" });
   }
 
@@ -126,7 +126,7 @@ router.post("/login-otp", loginLimiter, async (req, res) => {
   if (!target || !otp)
     return res.status(400).json({ error: "Identifier and OTP are required" });
 
-  if (!verifyOtp(target, otp))
+  if (!(await verifyOtp(target, otp)))
     return res.status(400).json({ error: "Invalid or expired OTP" });
 
   const { rows } = email

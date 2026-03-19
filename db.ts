@@ -52,6 +52,12 @@ export async function initDb(): Promise<void> {
       amount      NUMERIC NOT NULL,
       created_at  TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS otp_tokens (
+      target     TEXT PRIMARY KEY,
+      otp        TEXT NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL
+    );
   `);
   console.log("[DB] PostgreSQL schema ready");
 }

@@ -1,5 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+// ── Mock the pool before importing otp utils ─────────────────────────────────
+vi.mock("../db.js", () => ({
+  pool: {
+    query: vi.fn(),
+  },
+}));
+
+import { pool } from "../db.js";
 import { generateOtp, storeOtp, verifyOtp } from "../utils/otp.js";
+
+const mockQuery = pool.query as ReturnType<typeof vi.fn>;
 
 describe("generateOtp", () => {
   it("returns a 6-digit string", () => {
@@ -13,42 +24,35 @@ describe("generateOtp", () => {
   });
 });
 
-describe("storeOtp / verifyOtp", () => {
-  beforeEach(() => {
-    // Clear any leftover OTPs by using a unique target each test
+describe("storeOtp", () => {
+  beforeEach(() => mockQuery.mockResolvedValue({ rows: [] }));
+
+  it("inserts an OTP into the database", async () => {
+    await storeOtp("test@example.com", "123456");
+    expect(mockQuery).toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO otp_tokens"),
+      expect.arrayContaining(["test@example.com", "123456"])
+    );
+  });
+});
+
+describe("verifyOtp", () => {
+  it("returns true when DB deletes a matching row", async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [{ target: "test@example.com" }] });
+    expect(await verifyOtp("test@example.com", "123456")).toBe(true);
   });
 
-  it("verifies a stored OTP successfully", () => {
-    storeOtp("test@example.com", "123456");
-    expect(verifyOtp("test@example.com", "123456")).toBe(true);
+  it("returns false when no row is deleted (wrong OTP or expired)", async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [] });
+    expect(await verifyOtp("test@example.com", "999999")).toBe(false);
   });
 
-  it("rejects a wrong OTP", () => {
-    storeOtp("user@example.com", "111111");
-    expect(verifyOtp("user@example.com", "999999")).toBe(false);
-  });
-
-  it("rejects an OTP for an unknown target", () => {
-    expect(verifyOtp("nobody@example.com", "000000")).toBe(false);
-  });
-
-  it("deletes the OTP after successful verification (single-use)", () => {
-    storeOtp("once@example.com", "654321");
-    expect(verifyOtp("once@example.com", "654321")).toBe(true);
-    // Second attempt must fail
-    expect(verifyOtp("once@example.com", "654321")).toBe(false);
-  });
-
-  it("rejects an expired OTP", () => {
-    // Freeze time, store OTP, advance past 10 min, verify
-    const now = Date.now();
-    vi.spyOn(Date, "now")
-      .mockReturnValueOnce(now)          // storeOtp call
-      .mockReturnValueOnce(now + 11 * 60 * 1000); // verifyOtp expiry check
-
-    storeOtp("expire@example.com", "777777");
-    expect(verifyOtp("expire@example.com", "777777")).toBe(false);
-
-    vi.restoreAllMocks();
+  it("issues a DELETE with the correct target and OTP", async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [] });
+    await verifyOtp("user@example.com", "777777");
+    expect(mockQuery).toHaveBeenCalledWith(
+      expect.stringContaining("DELETE FROM otp_tokens"),
+      ["user@example.com", "777777"]
+    );
   });
 });
