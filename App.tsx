@@ -59,19 +59,19 @@ function App() {
     setScanning(true);
 
     try {
-      // Use custom ML model for crop recommendation
-      const mlResult = await getCropRecommendation({
-        N: formData.n,
-        P: formData.p,
-        K: formData.k,
-        temperature: currentWeather?.temp || 25,
-        humidity: currentWeather?.humidity || 70,
-        ph: formData.ph,
-        rainfall: formData.rainfall,
-      });
-
-      // Map ML result → PredictionResult format expected by ResultsView
-      const result: PredictionResult = {
+      // Try custom ML model first, fall back to Gemini if unavailable
+      let result: PredictionResult;
+      try {
+        const mlResult = await getCropRecommendation({
+          N: formData.n,
+          P: formData.p,
+          K: formData.k,
+          temperature: currentWeather?.temp || 25,
+          humidity: currentWeather?.humidity || 70,
+          ph: formData.ph,
+          rainfall: formData.rainfall,
+        });
+        result = {
         cropName: mlResult.predicted_crop.charAt(0).toUpperCase() + mlResult.predicted_crop.slice(1),
         cropHindi: mlResult.predicted_crop,
         confidence: Math.round(mlResult.confidence * 100),
@@ -105,7 +105,16 @@ function App() {
           summary: `Maintain N:${formData.n}, P:${formData.p}, K:${formData.k} levels for optimal yield.`,
           savingWithOrganic: "Consult local agronomist",
         },
-      };
+        };
+      } catch {
+        // ML service unavailable — fall back to Gemini
+        console.warn("[PREDICTION] ML service unavailable, falling back to Gemini");
+        result = await getCropPrediction(
+          { lat: userLocation?.lat || 0, lng: userLocation?.lng || 0 },
+          { n: formData.n, p: formData.p, k: formData.k, ph: formData.ph, soilType: formData.soilType, rainfall: formData.rainfall },
+          currentWeather || undefined
+        );
+      }
       setPrediction(result);
 
       // Save to history if logged in
