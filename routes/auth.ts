@@ -3,12 +3,45 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import rateLimit from "express-rate-limit";
+import { z } from "zod";
 import { pool } from "../db.js";
 import { authenticate, AuthRequest } from "../middleware/authenticate.js";
 import { setAuthCookie, clearAuthCookie } from "../utils/cookie.js";
 import { generateOtp, storeOtp, verifyOtp } from "../utils/otp.js";
 import { sendEmailOtp } from "../utils/email.js";
 import { sendSmsOtp } from "../utils/sms.js";
+
+// ─── Validation schemas ─────────────────────────────────────────────────────
+const emailOrPhone = z.object({
+  email: z.string().email().optional(),
+  phone: z.string().min(7).max(15).optional(),
+}).refine(d => d.email || d.phone, { message: "Email or phone is required" });
+
+const SendOtpSchema = emailOrPhone;
+
+const RegisterSchema = emailOrPhone.and(z.object({
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  name: z.string().min(1).max(100).optional(),
+  otp: z.string().length(6).optional(),
+  msg91Token: z.string().optional(),
+}));
+
+const LoginSchema = emailOrPhone.and(z.object({
+  password: z.string().min(1, "Password is required"),
+}));
+
+const LoginOtpSchema = emailOrPhone.and(z.object({
+  otp: z.string().length(6, "OTP must be 6 digits"),
+}));
+
+function validate<T>(schema: z.ZodType<T>, data: unknown, res: Response): T | null {
+  const result = schema.safeParse(data);
+  if (!result.success) {
+    res.status(400).json({ error: result.error.issues[0].message });
+    return null;
+  }
+  return result.data;
+}
 
 const router = Router();
 
@@ -33,11 +66,11 @@ function signToken(user: { id: string; email?: string | null; phone?: string | n
 
 // ─── Send OTP ──────────────────────────────────────────────────────────────
 router.post("/send-otp", otpLimiter, async (req, res) => {
-  const { email, phone } = req.body;
-  if (!email && !phone)
-    return res.status(400).json({ error: "Email or Phone is required" });
+  const body = validate(SendOtpSchema, req.body, res);
+  if (!body) return;
+  const { email, phone } = body;
 
-  const target = (email || phone) as string;
+  const target = (email ?? phone) as string;
   const otp = generateOtp();
   await storeOtp(target, otp);
 
@@ -57,10 +90,10 @@ router.post("/send-otp", otpLimiter, async (req, res) => {
 
 // ─── Register ──────────────────────────────────────────────────────────────
 router.post("/register", otpLimiter, async (req, res) => {
-  const { email, phone, password, name, otp, msg91Token } = req.body;
-  const target = email || phone;
-  if (!target) return res.status(400).json({ error: "Email or Phone is required" });
-  if (!password) return res.status(400).json({ error: "Password is required" });
+  const body = validate(RegisterSchema, req.body, res);
+  if (!body) return;
+  const { email, phone, password, name, otp, msg91Token } = body;
+  const target = email ?? phone;
 
   if (msg91Token) {
     try {
@@ -105,7 +138,9 @@ router.post("/register", otpLimiter, async (req, res) => {
 
 // ─── Login (password) ──────────────────────────────────────────────────────
 router.post("/login", loginLimiter, async (req, res) => {
-  const { email, phone, password } = req.body;
+  const body = validate(LoginSchema, req.body, res);
+  if (!body) return;
+  const { email, phone, password } = body;
   const { rows } = email
     ? await pool.query("SELECT * FROM users WHERE email = $1", [email])
     : await pool.query("SELECT * FROM users WHERE phone = $1", [phone]);
@@ -121,12 +156,12 @@ router.post("/login", loginLimiter, async (req, res) => {
 
 // ─── Login via OTP ─────────────────────────────────────────────────────────
 router.post("/login-otp", loginLimiter, async (req, res) => {
-  const { email, phone, otp } = req.body;
-  const target = email || phone;
-  if (!target || !otp)
-    return res.status(400).json({ error: "Identifier and OTP are required" });
+  const body = validate(LoginOtpSchema, req.body, res);
+  if (!body) return;
+  const { email, phone, otp } = body;
+  const target = (email ?? phone) as string;
 
-  if (!(await verifyOtp(target, otp)))
+  if (!(await verifyOtp(target, otp as string)))
     return res.status(400).json({ error: "Invalid or expired OTP" });
 
   const { rows } = email
