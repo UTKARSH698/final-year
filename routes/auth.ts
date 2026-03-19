@@ -1,6 +1,8 @@
 import { Router, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import rateLimit from "express-rate-limit";
 import { pool } from "../db.js";
 import { authenticate, AuthRequest } from "../middleware/authenticate.js";
 import { setAuthCookie, clearAuthCookie } from "../utils/cookie.js";
@@ -9,6 +11,18 @@ import { sendEmailOtp } from "../utils/email.js";
 import { sendSmsOtp } from "../utils/sms.js";
 
 const router = Router();
+
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: "Too many OTP requests, please try again in 15 minutes" },
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Too many login attempts, please try again in 15 minutes" },
+});
 const JWT_SECRET = process.env.JWT_SECRET || "agrifuture-dev-secret-local-only";
 
 function signToken(user: { id: string; email?: string | null; phone?: string | null }) {
@@ -18,7 +32,7 @@ function signToken(user: { id: string; email?: string | null; phone?: string | n
 }
 
 // ─── Send OTP ──────────────────────────────────────────────────────────────
-router.post("/send-otp", async (req, res) => {
+router.post("/send-otp", otpLimiter, async (req, res) => {
   const { email, phone } = req.body;
   if (!email && !phone)
     return res.status(400).json({ error: "Email or Phone is required" });
@@ -42,7 +56,7 @@ router.post("/send-otp", async (req, res) => {
 });
 
 // ─── Register ──────────────────────────────────────────────────────────────
-router.post("/register", async (req, res) => {
+router.post("/register", otpLimiter, async (req, res) => {
   const { email, phone, password, name, otp, msg91Token } = req.body;
   const target = email || phone;
   if (!target) return res.status(400).json({ error: "Email or Phone is required" });
@@ -74,7 +88,7 @@ router.post("/register", async (req, res) => {
     : (await pool.query("SELECT id FROM users WHERE phone = $1", [phone])).rows[0];
   if (existing) return res.status(400).json({ error: "User already exists" });
 
-  const id = Date.now().toString();
+  const id = crypto.randomUUID();
   const hashedPassword = await bcrypt.hash(password, 10);
   const now = new Date().toISOString();
 
@@ -90,7 +104,7 @@ router.post("/register", async (req, res) => {
 });
 
 // ─── Login (password) ──────────────────────────────────────────────────────
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   const { email, phone, password } = req.body;
   const { rows } = email
     ? await pool.query("SELECT * FROM users WHERE email = $1", [email])
@@ -106,7 +120,7 @@ router.post("/login", async (req, res) => {
 });
 
 // ─── Login via OTP ─────────────────────────────────────────────────────────
-router.post("/login-otp", async (req, res) => {
+router.post("/login-otp", loginLimiter, async (req, res) => {
   const { email, phone, otp } = req.body;
   const target = email || phone;
   if (!target || !otp)
@@ -180,7 +194,7 @@ router.post("/verify-msg91-token", async (req, res) => {
       if (!isRegistration) return res.status(401).json({ error: "No account found. Please register first." });
       if (!password) return res.status(400).json({ error: "Password is required to create an account." });
 
-      const newId = Date.now().toString();
+      const newId = crypto.randomUUID();
       const hashed = await bcrypt.hash(password, 10);
       const now = new Date().toISOString();
       await pool.query(

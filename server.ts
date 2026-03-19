@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
@@ -51,11 +51,17 @@ async function startServer() {
     res.redirect(307, "/api/auth/verify-msg91-token");
   });
 
+  // ─── Global error handler ────────────────────────────────────────────────
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    console.error("[UNHANDLED]", err.stack || err.message);
+    res.status(500).json({ error: "Internal server error" });
+  });
+
   // ─── Vite / Static ───────────────────────────────────────────────────────
   if (!IS_PROD) {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
-      server: { middlewareMode: true, allowedHosts: "all" },
+      server: { middlewareMode: true, allowedHosts: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
