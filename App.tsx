@@ -1,25 +1,33 @@
 
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Leaf } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { MandiTicker } from './components/MandiTicker';
-import { DigitalTwin } from './components/DigitalTwin';
 import { WeatherSection } from './components/WeatherSection';
 import { PredictionForm } from './components/PredictionForm';
-import { ResultsView } from './components/ResultsView';
 import { SupportSection } from './components/SupportSection';
-import { CropGuide } from './components/CropGuide';
-import { ChatBot } from './components/ChatBot';
-import { Shop } from './components/Shop';
-import { MarketAnalysis } from './components/MarketAnalysis';
-import { DiseaseDetector } from './components/DiseaseDetector';
-import { AgriDrone } from './components/AgriDrone';
-import { History } from './components/History';
-import { SchemesFinder } from './components/SchemesFinder';
-import { ExpenseTracker } from './components/ExpenseTracker';
 import { LoginModal } from './components/LoginModal';
+
+// Lazy-loaded: only downloaded when the user navigates to that view
+const DigitalTwin     = lazy(() => import('./components/DigitalTwin').then(m => ({ default: m.DigitalTwin })));
+const ResultsView     = lazy(() => import('./components/ResultsView').then(m => ({ default: m.ResultsView })));
+const CropGuide       = lazy(() => import('./components/CropGuide').then(m => ({ default: m.CropGuide })));
+const ChatBot         = lazy(() => import('./components/ChatBot').then(m => ({ default: m.ChatBot })));
+const Shop            = lazy(() => import('./components/Shop').then(m => ({ default: m.Shop })));
+const MarketAnalysis  = lazy(() => import('./components/MarketAnalysis').then(m => ({ default: m.MarketAnalysis })));
+const DiseaseDetector = lazy(() => import('./components/DiseaseDetector').then(m => ({ default: m.DiseaseDetector })));
+const AgriDrone       = lazy(() => import('./components/AgriDrone').then(m => ({ default: m.AgriDrone })));
+const History         = lazy(() => import('./components/History').then(m => ({ default: m.History })));
+const SchemesFinder   = lazy(() => import('./components/SchemesFinder').then(m => ({ default: m.SchemesFinder })));
+const ExpenseTracker  = lazy(() => import('./components/ExpenseTracker').then(m => ({ default: m.ExpenseTracker })));
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-[60vh]">
+    <Leaf className="w-8 h-8 text-emerald-500 animate-pulse" />
+  </div>
+);
 import { useAuth } from './AuthContext';
 import { getCropPrediction } from './services/geminiService';
 import { getCropRecommendation } from './services/predictionApi';
@@ -172,6 +180,7 @@ function App() {
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
       
       <main>
+        <Suspense fallback={<PageLoader />}>
         <AnimatePresence mode="wait">
           {view === 'crop-guide' ? (
             <motion.div
@@ -306,8 +315,11 @@ function App() {
             </motion.div>
           )}
         </AnimatePresence>
+        </Suspense>
       </main>
-      <ChatBot theme={theme} language={language} />
+      <Suspense fallback={null}>
+        <ChatBot theme={theme} language={language} />
+      </Suspense>
     </div>
   );
 }

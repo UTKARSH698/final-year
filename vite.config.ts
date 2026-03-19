@@ -28,6 +28,7 @@ export default defineConfig(({ mode }) => {
               framer:   ['framer-motion'],
               markdown: ['react-markdown'],
               icons:    ['lucide-react'],
+              gemini:   ['@google/genai'],
             },
           },
         },
