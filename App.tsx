@@ -22,6 +22,7 @@ import { ExpenseTracker } from './components/ExpenseTracker';
 import { LoginModal } from './components/LoginModal';
 import { useAuth } from './AuthContext';
 import { getCropPrediction } from './services/geminiService';
+import { getCropRecommendation } from './services/predictionApi';
 import { ThemeMode, PredictionResult, UserLocation, Language, WeatherData } from './types';
 
 function App() {
@@ -50,18 +51,53 @@ function App() {
     setScanning(true);
 
     try {
-      const result = await getCropPrediction(
-        { lat: userLocation?.lat || 0, lng: userLocation?.lng || 0 }, 
-        { 
-          n: formData.n, 
-          p: formData.p, 
-          k: formData.k, 
-          ph: formData.ph,
-          soilType: formData.soilType,
-          rainfall: formData.rainfall
+      // Use custom ML model for crop recommendation
+      const mlResult = await getCropRecommendation({
+        N: formData.n,
+        P: formData.p,
+        K: formData.k,
+        temperature: currentWeather?.temp || 25,
+        humidity: currentWeather?.humidity || 70,
+        ph: formData.ph,
+        rainfall: formData.rainfall,
+      });
+
+      // Map ML result → PredictionResult format expected by ResultsView
+      const result: PredictionResult = {
+        cropName: mlResult.predicted_crop.charAt(0).toUpperCase() + mlResult.predicted_crop.slice(1),
+        cropHindi: mlResult.predicted_crop,
+        confidence: Math.round(mlResult.confidence * 100),
+        yieldEstimate: "Varies by region",
+        marketPriceEstimate: "Check local mandi rates",
+        duration: "90–180 days",
+        agronomistNote: `ML model recommends ${mlResult.predicted_crop} with ${(mlResult.confidence * 100).toFixed(1)}% confidence based on your soil and climate data.`,
+        imageUrl: "",
+        reasons: [
+          { feature: "Soil Nutrients", impact: "positive", description: `N:${formData.n}, P:${formData.p}, K:${formData.k} — suitable for this crop` },
+          { feature: "Soil pH", impact: "positive", description: `pH ${formData.ph} — within optimal range` },
+          { feature: "Rainfall", impact: "positive", description: `${formData.rainfall}mm annual estimate` },
+        ],
+        alternatives: mlResult.top_3.slice(1).map(t => ({
+          cropName: t.crop.charAt(0).toUpperCase() + t.crop.slice(1),
+          cropHindi: t.crop,
+          confidence: Math.round(t.confidence * 100),
+        })),
+        profitability: {
+          expectedYieldPerAcre: "Contact local KVK",
+          costOfCultivation: "Varies by region",
+          marketValue: "Check mandi rates",
+          netProfit: "Depends on market",
+          riskLevel: mlResult.confidence > 0.8 ? "Low" : mlResult.confidence > 0.5 ? "Moderate" : "High",
+          riskColor: mlResult.confidence > 0.8 ? "green" : mlResult.confidence > 0.5 ? "yellow" : "red",
         },
-        currentWeather || undefined
-      );
+        diseaseRisk: { level: "Moderate", type: "General", symptoms: "Monitor regularly", treatment: "Consult agronomist", prevention: "Crop rotation recommended" },
+        fertilizerNeeds: {
+          chemical: [],
+          organic: [],
+          summary: `Maintain N:${formData.n}, P:${formData.p}, K:${formData.k} levels for optimal yield.`,
+          savingWithOrganic: "Consult local agronomist",
+        },
+      };
       setPrediction(result);
 
       // Save to history if logged in

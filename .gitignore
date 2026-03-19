@@ -23,6 +23,11 @@ data/
 # Compiled server bundle
 server.built.js
 
+# Python
+__pycache__/
+*.pyc
+ml-service/training/data/
+
 # Claude Code local settings
 .claude/
 

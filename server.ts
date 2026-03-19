@@ -3,11 +3,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 import { initDb, pool } from "./db.js";
-import authRouter     from "./routes/auth.js";
-import marketRouter   from "./routes/market.js";
-import reportsRouter  from "./routes/reports.js";
-import expensesRouter from "./routes/expenses.js";
-import paymentsRouter from "./routes/payments.js";
+import authRouter        from "./routes/auth.js";
+import marketRouter      from "./routes/market.js";
+import reportsRouter     from "./routes/reports.js";
+import expensesRouter    from "./routes/expenses.js";
+import paymentsRouter    from "./routes/payments.js";
+import predictionsRouter from "./routes/predictions.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -45,6 +46,7 @@ async function startServer() {
   app.use("/api/reports",       reportsRouter);
   app.use("/api/expenses",      expensesRouter);
   app.use("/api",               paymentsRouter);
+  app.use("/api/predict",       predictionsRouter);
 
   // ─── MSG91 widget token (legacy path kept for frontend compatibility) ─────
   app.post("/api/verify-msg91-token", (req, res) => {

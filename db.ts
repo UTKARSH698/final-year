@@ -8,7 +8,7 @@ if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL || "postgresql://localhost:5432/agrifuture",
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
 });
 
 // ─── Schema ───────────────────────────────────────────────────────────────
