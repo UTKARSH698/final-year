@@ -79,7 +79,7 @@ function App() {
   const [currentWeather, setCurrentWeather] = useState<WeatherData | null>(null);
   const [language, setLanguage] = useState<Language>(Language.EN);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const toggleTheme = () => {
     const newTheme = theme === ThemeMode.DARK ? ThemeMode.LIGHT : ThemeMode.DARK;
@@ -122,6 +122,14 @@ function App() {
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [user]);
+
+  // Force-redirect protected views when user logs out or isn't authenticated
+  useEffect(() => {
+    if (!authLoading && !user && PROTECTED_VIEWS.includes(view)) {
+      setView('home');
+      setIsLoginOpen(true);
+    }
+  }, [user, authLoading, view]);
 
   // Ctrl+K to open command palette
   useEffect(() => {

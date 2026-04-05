@@ -69,8 +69,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Right Controls */}
         <div className="flex items-center gap-2 md:gap-4">
           
-          {/* Navigation Buttons (Desktop) */}
-          <div className="hidden lg:flex items-center gap-2 mr-4">
+          {/* Navigation Buttons (Desktop) — only shown when logged in */}
+          {user && <div className="hidden lg:flex items-center gap-2 mr-4">
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -135,10 +135,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Receipt className="w-4 h-4 text-gold group-hover:scale-110 transition-transform" />
               <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">EXPENSES</span>
             </motion.button>
-          </div>
+          </div>}
 
-          {/* Navigation Buttons (Mobile - Icons Only) */}
-          <div className="flex lg:hidden items-center gap-2" role="navigation" aria-label="Quick actions">
+          {/* Navigation Buttons (Mobile - Icons Only) — only shown when logged in */}
+          {user && <div className="flex lg:hidden items-center gap-2" role="navigation" aria-label="Quick actions">
             <button onClick={onNavigateToAgriDrone} aria-label="Drone analytics" className="p-2 rounded-full bg-gold/10 text-gold">
               <Plane size={18} />
             </button>
@@ -160,7 +160,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button onClick={onNavigateToExpenses} aria-label="Expense tracker" className="p-2 rounded-full bg-gold/10 text-gold">
               <Receipt size={18} />
             </button>
-          </div>
+          </div>}
 
           {/* Language Selector */}
           <div className="relative">
