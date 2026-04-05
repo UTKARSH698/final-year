@@ -179,6 +179,7 @@ export interface User {
   email: string;
   phone?: string;
   name: string;
+  role?: 'user' | 'admin';
 }
 
 export interface CartItem {
@@ -192,6 +193,23 @@ export interface CropCalendarWeek {
   activities: string[];
   inputs: string;
   watchOut: string;
+}
+
+export interface CropRotationStep {
+  season: string;
+  cropName: string;
+  cropHindi: string;
+  reason: string;
+  soilBenefit: string;
+  duration: string;
+  icon: 'nitrogen' | 'organic' | 'cash' | 'rest' | 'cover';
+}
+
+export interface CropRotationPlan {
+  currentCrop: string;
+  totalCycleMonths: number;
+  steps: CropRotationStep[];
+  overallBenefit: string;
 }
 
 export interface GovernmentScheme {

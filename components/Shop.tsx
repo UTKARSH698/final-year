@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Product, ProductType, ThemeMode, CartItem } from '../types';
 import { MANDI_RATES } from '../constants';
+import { useToast } from './Toast';
 
 const PRODUCTS: Product[] = [
   // --- SEEDS (Text-only, no images) ---
@@ -110,6 +111,7 @@ const PRODUCTS: Product[] = [
 ];
 
 export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBack, theme }) => {
+  const { toast } = useToast();
   const [filter, setFilter] = useState<ProductType | 'All'>('All');
   const [search, setSearch] = useState('');
   
@@ -221,7 +223,7 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
             setCheckoutStep('success');
             setCart([]);
           } else {
-            alert("Payment verification failed!");
+            toast("Payment verification failed!", 'error');
           }
         },
         prefill: {
@@ -238,7 +240,7 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
       rzp.open();
     } catch (error) {
       console.error("Payment Error:", error);
-      alert("Failed to initiate payment. Please try again.");
+      toast("Failed to initiate payment. Please try again.", 'error');
     } finally {
       setIsProcessing(false);
     }

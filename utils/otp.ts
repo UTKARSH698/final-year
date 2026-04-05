@@ -1,7 +1,8 @@
+import { randomInt } from "crypto";
 import { pool } from "../db.js";
 
 export function generateOtp(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 999999).toString();
 }
 
 export async function storeOtp(target: string, otp: string): Promise<void> {

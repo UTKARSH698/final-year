@@ -8,7 +8,9 @@ if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
 
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL || "postgresql://localhost:5432/agrifuture",
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+  ssl: process.env.DATABASE_URL
+    ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' }
+    : false,
 });
 
 // ─── Schema ───────────────────────────────────────────────────────────────
@@ -20,6 +22,7 @@ export async function initDb(): Promise<void> {
       email       TEXT UNIQUE,
       phone       TEXT UNIQUE,
       password    TEXT NOT NULL,
+      role        TEXT NOT NULL DEFAULT 'user',
       state       TEXT,
       land_size   TEXT,
       created_at  TEXT NOT NULL
@@ -58,6 +61,28 @@ export async function initDb(): Promise<void> {
       otp        TEXT NOT NULL,
       expires_at TIMESTAMPTZ NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS activity_log (
+      id         SERIAL PRIMARY KEY,
+      user_id    TEXT NOT NULL,
+      action     TEXT NOT NULL,
+      detail     TEXT DEFAULT '',
+      ip         TEXT DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    -- Performance indexes
+    CREATE INDEX IF NOT EXISTS idx_users_email    ON users (email);
+    CREATE INDEX IF NOT EXISTS idx_users_phone    ON users (phone);
+    CREATE INDEX IF NOT EXISTS idx_reports_user   ON reports (user_id);
+    CREATE INDEX IF NOT EXISTS idx_expenses_user  ON expenses (user_id);
+    CREATE INDEX IF NOT EXISTS idx_orders_status  ON orders (status);
+    CREATE INDEX IF NOT EXISTS idx_activity_user  ON activity_log (user_id);
   `);
+  // Migration: add role column if missing (for existing DBs)
+  try {
+    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user'`);
+  } catch { /* column already exists */ }
+
   console.log("[DB] PostgreSQL schema ready");
 }

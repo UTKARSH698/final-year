@@ -1,13 +1,69 @@
 
-import React, { useEffect, useRef } from 'react';
-import { motion, Variants } from 'framer-motion';
-import { MapPin, Sprout, CloudRain, Users } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, Variants, useInView } from 'framer-motion';
+import { MapPin, Sprout, CloudRain, Users, Wheat, BarChart3, Globe2, Shield } from 'lucide-react';
 import { TRANSLATIONS } from '../constants';
 import { Language } from '../types';
+
+const useCounter = (end: number, duration: number = 2000, start: boolean = false) => {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!start) return;
+    let startTime: number;
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      setValue(Math.floor(eased * end));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [end, duration, start]);
+  return value;
+};
 
 interface HeroProps {
   language: Language;
 }
+
+const STATS = [
+  { icon: Wheat, value: 55, suffix: '+', label: 'Crops Supported', color: 'text-emerald-500' },
+  { icon: BarChart3, value: 95, suffix: '%', label: 'Prediction Accuracy', color: 'text-gold' },
+  { icon: Globe2, value: 15, suffix: '+', label: 'Indian States', color: 'text-blue-500' },
+  { icon: Shield, value: 100, suffix: '%', label: 'Data Privacy', color: 'text-purple-500' },
+];
+
+const StatsCounter: React.FC = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-100px' });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: 0.2 }}
+      className="relative z-10 w-full max-w-4xl mx-auto px-6 mb-24"
+    >
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {STATS.map((stat, i) => {
+          const count = useCounter(stat.value, 2000, inView);
+          return (
+            <div key={i} className="text-center space-y-2">
+              <stat.icon className={`w-6 h-6 mx-auto ${stat.color} opacity-70`} />
+              <div className="text-3xl md:text-4xl font-outfit font-bold text-gray-900 dark:text-white">
+                {count}{stat.suffix}
+              </div>
+              <div className="text-xs font-jakarta text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold">
+                {stat.label}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+};
 
 export const Hero: React.FC<HeroProps> = ({ language }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -202,6 +258,9 @@ export const Hero: React.FC<HeroProps> = ({ language }) => {
           ))}
         </motion.div>
       </motion.div>
+
+      {/* Animated Stats */}
+      <StatsCounter />
 
       {/* Weather Strip */}
       <motion.div 

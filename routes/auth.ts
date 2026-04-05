@@ -6,6 +6,11 @@ import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { pool } from "../db.js";
 import { authenticate, AuthRequest } from "../middleware/authenticate.js";
+
+async function logActivity(userId: string, action: string, detail: string, ip: string) {
+  try { await pool.query(`INSERT INTO activity_log (user_id, action, detail, ip) VALUES ($1, $2, $3, $4)`, [userId, action, detail, ip]); }
+  catch {}
+}
 import { setAuthCookie, clearAuthCookie } from "../utils/cookie.js";
 import { generateOtp, storeOtp, verifyOtp } from "../utils/otp.js";
 import { sendEmailOtp } from "../utils/email.js";
@@ -58,8 +63,8 @@ const loginLimiter = rateLimit({
 });
 const JWT_SECRET = process.env.JWT_SECRET || "agrifuture-dev-secret-local-only";
 
-function signToken(user: { id: string; email?: string | null; phone?: string | null }) {
-  return jwt.sign({ id: user.id, email: user.email, phone: user.phone }, JWT_SECRET, {
+function signToken(user: { id: string; email?: string | null; phone?: string | null; role?: string }) {
+  return jwt.sign({ id: user.id, email: user.email, phone: user.phone, role: user.role || 'user' }, JWT_SECRET, {
     expiresIn: "7d",
   });
 }
@@ -131,9 +136,10 @@ router.post("/register", otpLimiter, async (req, res) => {
     [id, name || "Farmer", email || null, phone || null, hashedPassword, now]
   );
 
-  const token = signToken({ id, email, phone });
+  const token = signToken({ id, email, phone, role: 'user' });
   setAuthCookie(res, token);
-  res.status(201).json({ id, email, phone, name: name || "Farmer" });
+  logActivity(id, 'register', `New account via ${email ? 'email' : 'phone'}`, req.ip || '');
+  res.status(201).json({ id, email, phone, name: name || "Farmer", role: 'user' });
 });
 
 // ─── Login (password) ──────────────────────────────────────────────────────
@@ -151,7 +157,8 @@ router.post("/login", loginLimiter, async (req, res) => {
 
   const token = signToken(user);
   setAuthCookie(res, token);
-  res.json({ id: user.id, email: user.email, phone: user.phone, name: user.name });
+  logActivity(user.id, 'login', `Password login via ${email ? 'email' : 'phone'}`, req.ip || '');
+  res.json({ id: user.id, email: user.email, phone: user.phone, name: user.name, role: user.role || 'user' });
 });
 
 // ─── Login via OTP ─────────────────────────────────────────────────────────
@@ -174,7 +181,7 @@ router.post("/login-otp", loginLimiter, async (req, res) => {
 
   const token = signToken(user);
   setAuthCookie(res, token);
-  res.json({ id: user.id, email: user.email, phone: user.phone, name: user.name });
+  res.json({ id: user.id, email: user.email, phone: user.phone, name: user.name, role: user.role || 'user' });
 });
 
 // ─── MSG91 Widget Token Verification ───────────────────────────────────────
@@ -258,7 +265,7 @@ router.post("/verify-msg91-token", async (req, res) => {
 
     const jwtToken = signToken(user);
     setAuthCookie(res, jwtToken);
-    res.json({ success: true, user: { id: user.id, email: user.email, phone: user.phone, name: user.name } });
+    res.json({ success: true, user: { id: user.id, email: user.email, phone: user.phone, name: user.name, role: user.role || 'user' } });
   } catch (err) {
     console.error("[MSG91] Verify error:", err);
     res.status(500).json({ error: "Verification failed" });
@@ -270,7 +277,7 @@ router.get("/me", authenticate, async (req: AuthRequest, res: Response) => {
   const { rows } = await pool.query("SELECT * FROM users WHERE id = $1", [req.user?.id]);
   const user = rows[0];
   if (!user) return res.status(404).json({ error: "User not found" });
-  res.json({ id: user.id, email: user.email, phone: user.phone, name: user.name });
+  res.json({ id: user.id, email: user.email, phone: user.phone, name: user.name, role: user.role || 'user' });
 });
 
 // ─── Logout ────────────────────────────────────────────────────────────────
@@ -296,7 +303,7 @@ router.put("/profile", authenticate, async (req: AuthRequest, res: Response) => 
   );
   const { rows: updated } = await pool.query("SELECT * FROM users WHERE id = $1", [user.id]);
   const u = updated[0];
-  res.json({ id: u.id, email: u.email, phone: u.phone, name: u.name, state: u.state, landSize: u.land_size });
+  res.json({ id: u.id, email: u.email, phone: u.phone, name: u.name, role: u.role || 'user', state: u.state, landSize: u.land_size });
 });
 
 export default router;

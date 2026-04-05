@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Coordinates, PredictionResult, ChatMessage, DiseaseRisk, WeatherData, FertilizerPlan, MarketForecast, PricePoint, PredictionReason, DiseaseDetectionResult, DroneAnalysisResult, CropCalendarWeek, GovernmentScheme } from '../types';
+import { Coordinates, PredictionResult, ChatMessage, DiseaseRisk, WeatherData, FertilizerPlan, MarketForecast, PricePoint, PredictionReason, DiseaseDetectionResult, DroneAnalysisResult, CropCalendarWeek, GovernmentScheme, CropRotationPlan, CropRotationStep } from '../types';
 import { MANDI_RATES } from '../constants';
 
 // Lazy-initialise so a missing key doesn't crash the whole app at import time
@@ -555,7 +555,7 @@ export const streamChatResponse = async (history: ChatMessage[], message: string
 - 💧 Water & Irrigation: Drip, sprinkler, flood irrigation. Evapotranspiration, scheduling, soil moisture. Integration with AgriDrone tool.
 - 🌾 Crop Management: Kharif (Rice, Cotton, Soybean), Rabi (Wheat, Mustard, Chana), Zaid crops. Sowing windows, varieties, intercropping.
 - 🐛 Pest & Disease: IPM (Integrated Pest Management), biological controls, fungicides/bactericides/insecticides available in India. FSSAI-compliant pesticide list.
-- 📈 Market Intelligence: MSP 2024-25, APMC mandi prices, commodity futures, best selling windows, eNAM platform.
+- 📈 Market Intelligence: MSP 2026-27, APMC mandi prices, commodity futures, best selling windows, eNAM platform.
 - 🏛️ Government Schemes: PM-KISAN, PMFBY, Kisan Credit Card, Soil Health Card, PMKSY, state-specific subsidies.
 - 🌦️ Agro-meteorology: Monsoon patterns, IMD forecasts, frost/heat stress management, climate-smart agriculture.
 - 🤖 AgriFuture Features: Scan (disease detection), AgriDrone (irrigation mapping), Market (price forecasts), Store (agri inputs), Schemes (govt benefits), Expenses (farm accounting), History (report archive).
@@ -655,4 +655,67 @@ Only include schemes genuinely applicable to the given crop and land size. Inclu
     }
   });
   return JSON.parse(response.text || '[]') as GovernmentScheme[];
+};
+
+// ─── Smart Crop Rotation Recommender ─────────────────────────────────────────
+export const getCropRotationPlan = async (
+  currentCrop: string,
+  soilType: string,
+  state: string
+): Promise<CropRotationPlan> => {
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: `You are an expert Indian agronomist. A farmer in ${state || 'India'} has just harvested ${currentCrop} on ${soilType || 'mixed'} soil.
+
+Design an optimal 3-year crop rotation cycle (4-5 steps) that:
+1. Replenishes soil nutrients depleted by ${currentCrop}
+2. Breaks pest/disease cycles
+3. Alternates between nitrogen-fixing, cash, and cover crops
+4. Considers Indian seasons (Kharif June-Oct, Rabi Nov-Mar, Zaid Mar-Jun)
+5. Maximizes long-term soil health AND farmer income
+
+For each step provide:
+- season: e.g. "Rabi 2026-27", "Kharif 2027"
+- cropName: English name
+- cropHindi: Hindi name
+- reason: Why this crop follows the previous (nutrient fix, pest break, cash value, etc.)
+- soilBenefit: Specific soil improvement (e.g. "Fixes 40-60 kg N/ha via root nodules")
+- duration: Growing period (e.g. "110-120 days")
+- icon: One of "nitrogen" (legumes/pulses), "cash" (high value crops), "organic" (green manure/compost crops), "rest" (fallow period), "cover" (cover crops for soil protection)
+
+Also provide:
+- totalCycleMonths: Total rotation cycle length
+- overallBenefit: One-line summary of the rotation's combined impact on soil health
+
+Return strictly as JSON: { "currentCrop": string, "totalCycleMonths": number, "steps": [...], "overallBenefit": string }`,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          currentCrop: { type: Type.STRING },
+          totalCycleMonths: { type: Type.NUMBER },
+          steps: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                season: { type: Type.STRING },
+                cropName: { type: Type.STRING },
+                cropHindi: { type: Type.STRING },
+                reason: { type: Type.STRING },
+                soilBenefit: { type: Type.STRING },
+                duration: { type: Type.STRING },
+                icon: { type: Type.STRING },
+              },
+              required: ["season", "cropName", "cropHindi", "reason", "soilBenefit", "duration", "icon"]
+            }
+          },
+          overallBenefit: { type: Type.STRING },
+        },
+        required: ["currentCrop", "totalCycleMonths", "steps", "overallBenefit"]
+      }
+    }
+  });
+  return JSON.parse(response.text || '{}') as CropRotationPlan;
 };

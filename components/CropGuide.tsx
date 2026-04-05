@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Droplets, Calendar, Sprout, IndianRupee, X, Scale, Check, Plus, BookOpen, ChevronRight, Search } from 'lucide-react';
 import { CROP_DATABASE, CropData } from '../services/geminiService';
+import { useToast } from './Toast';
 
 interface CropGuideProps {
   onBack: () => void;
@@ -166,6 +167,7 @@ const ComparisonView: React.FC<{ crops: CropData[]; onBack: () => void }> = ({ c
 };
 
 export const CropGuide: React.FC<CropGuideProps> = ({ onBack }) => {
+  const { toast } = useToast();
   const [selectedCrops, setSelectedCrops] = useState<CropData[]>([]);
   const [showCompare, setShowCompare] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -193,7 +195,7 @@ export const CropGuide: React.FC<CropGuideProps> = ({ onBack }) => {
       setSelectedCrops(prev => prev.filter(c => c.name !== crop.name));
     } else {
       if (selectedCrops.length >= 3) {
-        alert("You can compare up to 3 crops at a time.");
+        toast("You can compare up to 3 crops at a time.", 'info');
         return;
       }
       setSelectedCrops(prev => [...prev, crop]);

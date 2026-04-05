@@ -1,14 +1,21 @@
 
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Leaf } from 'lucide-react';
+import { Leaf, FileText, Receipt, TrendingUp, Shield, Code2, Activity } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { MandiTicker } from './components/MandiTicker';
 import { WeatherSection } from './components/WeatherSection';
 import { PredictionForm } from './components/PredictionForm';
 import { SupportSection } from './components/SupportSection';
+import { Footer } from './components/Footer';
 import { LoginModal } from './components/LoginModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider } from './components/Toast';
+import { ScrollToTop } from './components/ScrollToTop';
+import { CommandPalette } from './components/CommandPalette';
+import NetworkStatus from './components/NetworkStatus';
+import InstallPrompt from './components/InstallPrompt';
 
 // Lazy-loaded: only downloaded when the user navigates to that view
 const DigitalTwin     = lazy(() => import('./components/DigitalTwin').then(m => ({ default: m.DigitalTwin })));
@@ -22,10 +29,25 @@ const AgriDrone       = lazy(() => import('./components/AgriDrone').then(m => ({
 const History         = lazy(() => import('./components/History').then(m => ({ default: m.History })));
 const SchemesFinder   = lazy(() => import('./components/SchemesFinder').then(m => ({ default: m.SchemesFinder })));
 const ExpenseTracker  = lazy(() => import('./components/ExpenseTracker').then(m => ({ default: m.ExpenseTracker })));
+const AdminDashboard  = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const AboutTechStack  = lazy(() => import('./components/AboutTechStack').then(m => ({ default: m.AboutTechStack })));
 
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-[60vh]">
-    <Leaf className="w-8 h-8 text-emerald-500 animate-pulse" />
+  <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
+    <div className="relative">
+      <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center">
+        <Leaf className="w-8 h-8 text-emerald-500 animate-pulse" />
+      </div>
+      <div className="absolute inset-0 rounded-2xl border-2 border-emerald-500/20 animate-ping" />
+    </div>
+    <div className="space-y-3 w-64">
+      <div className="h-3 bg-gray-200 dark:bg-white/5 rounded-full overflow-hidden">
+        <div className="h-full w-2/3 bg-gradient-to-r from-transparent via-gray-300 dark:via-white/10 to-transparent animate-[marquee_1.5s_linear_infinite]" />
+      </div>
+      <div className="h-3 bg-gray-200 dark:bg-white/5 rounded-full overflow-hidden">
+        <div className="h-full w-1/2 bg-gradient-to-r from-transparent via-gray-300 dark:via-white/10 to-transparent animate-[marquee_1.5s_linear_infinite_0.3s]" />
+      </div>
+    </div>
   </div>
 );
 import { useAuth } from './AuthContext';
@@ -33,14 +55,24 @@ import { getCropPrediction } from './services/geminiService';
 import { getCropRecommendation } from './services/predictionApi';
 import { ThemeMode, PredictionResult, UserLocation, Language, WeatherData } from './types';
 
+type ViewName = 'home' | 'crop-guide' | 'shop' | 'market' | 'disease-detect' | 'agri-drone' | 'history' | 'schemes' | 'expense' | 'admin' | 'tech-stack';
+
 function App() {
-  const [theme, setTheme] = useState<ThemeMode>(ThemeMode.DARK);
+  // Theme — persist in localStorage
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    try {
+      const saved = localStorage.getItem('agrifuture_theme');
+      return saved === ThemeMode.LIGHT ? ThemeMode.LIGHT : ThemeMode.DARK;
+    } catch { return ThemeMode.DARK; }
+  });
+
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
-  
+
   // Navigation State
-  const [view, setView] = useState<'home' | 'crop-guide' | 'shop' | 'market' | 'disease-detect' | 'agri-drone' | 'history' | 'schemes' | 'expense'>('home');
+  const [view, setView] = useState<ViewName>('home');
+  const [cmdPaletteOpen, setCmdPaletteOpen] = useState(false);
 
   // Lifted States
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
@@ -52,9 +84,62 @@ function App() {
   const toggleTheme = () => {
     const newTheme = theme === ThemeMode.DARK ? ThemeMode.LIGHT : ThemeMode.DARK;
     setTheme(newTheme);
+    try { localStorage.setItem('agrifuture_theme', newTheme); } catch {}
   };
 
+  // Dynamic page title
+  const VIEW_TITLES: Record<ViewName, string> = {
+    'home': 'AgriFuture India — AI Crop Intelligence',
+    'crop-guide': 'Crop Guide — AgriFuture India',
+    'shop': 'Agri Store — AgriFuture India',
+    'market': 'Market Forecasting — AgriFuture India',
+    'disease-detect': 'Disease Scanner — AgriFuture India',
+    'agri-drone': 'Drone Analytics — AgriFuture India',
+    'history': 'Report History — AgriFuture India',
+    'schemes': 'Government Schemes — AgriFuture India',
+    'expense': 'Expense Tracker — AgriFuture India',
+    'admin': 'Admin Panel — AgriFuture India',
+    'tech-stack': 'Tech Stack — AgriFuture India',
+  };
+
+  useEffect(() => {
+    document.title = VIEW_TITLES[view] || 'AgriFuture India — AI Crop Intelligence';
+  }, [view]);
+
+  // Protected views require login
+  const PROTECTED_VIEWS: ViewName[] = ['crop-guide', 'shop', 'market', 'disease-detect', 'agri-drone', 'history', 'schemes', 'expense', 'admin'];
+
+  // Navigate with scroll-to-top + auth guard
+  const navigateTo = useCallback((v: string) => {
+    if (v === 'home') {
+      setView('home');
+      setPrediction(null);
+    } else if (PROTECTED_VIEWS.includes(v as ViewName) && !user) {
+      setIsLoginOpen(true);
+      return;
+    } else {
+      setView(v as ViewName);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [user]);
+
+  // Ctrl+K to open command palette
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCmdPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   const handleAnalysis = async (formData: any) => {
+    if (!user) {
+      setIsLoginOpen(true);
+      return;
+    }
     setLoading(true);
     setScanning(true);
 
@@ -118,10 +203,8 @@ function App() {
       setPrediction(result);
 
       // Save to history if logged in
-      console.log("[PREDICTION] User state:", user);
       if (user) {
         try {
-          console.log("[PREDICTION] Attempting to save prediction to history...");
           const saveRes = await fetch('/api/reports', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -133,14 +216,12 @@ function App() {
               data: result
             })
           });
-          if (saveRes.ok) {
-            console.log("[PREDICTION] Prediction saved to history successfully");
-          } else {
+          if (!saveRes.ok) {
             const errData = await saveRes.json();
-            console.error("[PREDICTION] Failed to save prediction:", errData);
+            console.error("[PREDICTION] Failed to save:", errData);
           }
         } catch (saveErr) {
-          console.error("[PREDICTION] Error saving prediction to history:", saveErr);
+          console.error("[PREDICTION] Save error:", saveErr);
         }
       }
     } catch (error) {
@@ -151,11 +232,7 @@ function App() {
     }
   };
 
-  const handleNavigateHome = () => {
-    setView('home');
-    setPrediction(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const handleNavigateHome = () => navigateTo('home');
 
   React.useEffect(() => {
     if (theme === ThemeMode.DARK) {
@@ -166,8 +243,12 @@ function App() {
   }, [theme]);
 
   return (
+    <ErrorBoundary>
+    <ToastProvider>
     <div className={`min-h-screen relative font-inter transition-colors duration-700 ease-in-out ${theme === ThemeMode.DARK ? 'bg-obsidian text-white' : 'bg-ivory text-light-body'}`}>
       <div className="fixed inset-0 pointer-events-none z-[60] bg-noise opacity-[0.03] mix-blend-overlay"></div>
+
+      <NetworkStatus />
 
       <Navbar
         theme={theme}
@@ -175,20 +256,23 @@ function App() {
         language={language}
         setLanguage={setLanguage}
         onNavigateToHome={handleNavigateHome}
-        onNavigateToCropGuide={() => setView('crop-guide')}
-        onNavigateToShop={() => setView('shop')}
-        onNavigateToMarket={() => setView('market')}
-        onNavigateToDiseaseDetect={() => setView('disease-detect')}
-        onNavigateToAgriDrone={() => setView('agri-drone')}
-        onNavigateToHistory={() => setView('history')}
-        onNavigateToSchemes={() => setView('schemes')}
-        onNavigateToExpenses={() => setView('expense')}
+        onNavigateToCropGuide={() => navigateTo('crop-guide')}
+        onNavigateToShop={() => navigateTo('shop')}
+        onNavigateToMarket={() => navigateTo('market')}
+        onNavigateToDiseaseDetect={() => navigateTo('disease-detect')}
+        onNavigateToAgriDrone={() => navigateTo('agri-drone')}
+        onNavigateToHistory={() => navigateTo('history')}
+        onNavigateToSchemes={() => navigateTo('schemes')}
+        onNavigateToExpenses={() => navigateTo('expense')}
+        onNavigateToAdmin={() => navigateTo('admin')}
+        onNavigateToTechStack={() => navigateTo('tech-stack')}
         onOpenLogin={() => setIsLoginOpen(true)}
       />
-      
+
+      <CommandPalette isOpen={cmdPaletteOpen} onClose={() => setCmdPaletteOpen(false)} onNavigate={navigateTo} />
       <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
       
-      <main>
+      <main id="main-content">
         <Suspense fallback={<PageLoader />}>
         <AnimatePresence mode="wait">
           {view === 'crop-guide' ? (
@@ -199,7 +283,7 @@ function App() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              <CropGuide onBack={() => setView('home')} />
+              <CropGuide onBack={handleNavigateHome} />
             </motion.div>
           ) : view === 'shop' ? (
             <motion.div
@@ -209,7 +293,7 @@ function App() {
               exit={{ opacity: 0, scale: 1.02 }}
               transition={{ duration: 0.5, ease: "circOut" }}
             >
-              <Shop theme={theme} onBack={() => setView('home')} />
+              <Shop theme={theme} onBack={handleNavigateHome} />
             </motion.div>
           ) : view === 'market' ? (
             <motion.div
@@ -219,7 +303,7 @@ function App() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.5 }}
             >
-              <MarketAnalysis onBack={() => setView('home')} />
+              <MarketAnalysis onBack={handleNavigateHome} />
             </motion.div>
           ) : view === 'disease-detect' ? (
             <motion.div
@@ -229,7 +313,7 @@ function App() {
               exit={{ opacity: 0, filter: 'blur(10px)' }}
               transition={{ duration: 0.6 }}
             >
-              <DiseaseDetector onBack={() => setView('home')} />
+              <DiseaseDetector onBack={handleNavigateHome} />
             </motion.div>
           ) : view === 'agri-drone' ? (
             <motion.div
@@ -239,7 +323,7 @@ function App() {
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.7, ease: "anticipate" }}
             >
-              <AgriDrone onBack={() => setView('home')} />
+              <AgriDrone onBack={handleNavigateHome} />
             </motion.div>
           ) : view === 'history' ? (
             <motion.div
@@ -249,7 +333,7 @@ function App() {
               exit={{ opacity: 0, y: -30 }}
               transition={{ duration: 0.5 }}
             >
-              <History onBack={() => setView('home')} />
+              <History onBack={handleNavigateHome} />
             </motion.div>
           ) : view === 'schemes' ? (
             <motion.div
@@ -259,7 +343,7 @@ function App() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
             >
-              <SchemesFinder onBack={() => setView('home')} />
+              <SchemesFinder onBack={handleNavigateHome} />
             </motion.div>
           ) : view === 'expense' ? (
             <motion.div
@@ -269,7 +353,27 @@ function App() {
               exit={{ opacity: 0, scale: 1.02 }}
               transition={{ duration: 0.5 }}
             >
-              <ExpenseTracker onBack={() => setView('home')} />
+              <ExpenseTracker onBack={handleNavigateHome} />
+            </motion.div>
+          ) : view === 'admin' ? (
+            <motion.div
+              key="admin"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <AdminDashboard onBack={handleNavigateHome} />
+            </motion.div>
+          ) : view === 'tech-stack' ? (
+            <motion.div
+              key="tech-stack"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <AboutTechStack onBack={handleNavigateHome} />
             </motion.div>
           ) : !prediction && !scanning ? (
             <motion.div
@@ -280,10 +384,80 @@ function App() {
               transition={{ duration: 0.4 }}
             >
               <Hero language={language} />
+              {!user && (
+                <section className="max-w-4xl mx-auto px-6 py-12">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gold/10 via-emerald-500/5 to-transparent border border-gold/20 p-10 text-center"
+                  >
+                    <div className="absolute -top-20 -right-20 w-60 h-60 bg-gold/10 rounded-full blur-3xl" />
+                    <h2 className="text-3xl font-outfit font-bold text-gray-900 dark:text-white mb-3">Login to Unlock All Features</h2>
+                    <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto mb-6">
+                      Access AI crop predictions, disease detection, market forecasting, drone analytics, government schemes, expense tracking, and more.
+                    </p>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setIsLoginOpen(true)}
+                      className="px-10 py-4 bg-gold text-black font-bold font-jakarta tracking-wider rounded-xl shadow-xl shadow-gold/20 hover:shadow-gold/40 transition-all"
+                    >
+                      LOGIN / REGISTER
+                    </motion.button>
+                    <div className="flex flex-wrap justify-center gap-4 mt-8 text-xs font-bold text-gray-500 dark:text-gray-400 tracking-widest uppercase">
+                      {['Crop AI', 'Disease Scan', 'Market Forecast', 'Drone Analytics', 'Gov Schemes', 'Expense Tracker'].map(f => (
+                        <span key={f} className="px-3 py-1.5 rounded-full bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/10">{f}</span>
+                      ))}
+                    </div>
+                  </motion.div>
+                </section>
+              )}
+              {user && (
+                <section className="max-w-5xl mx-auto px-6 py-10">
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                    <h2 className="text-2xl font-outfit font-bold text-gray-900 dark:text-white mb-1">Welcome back, {user.name}!</h2>
+                    <p className="text-sm text-gray-500 mb-6">Quick access to your farm tools {user.role === 'admin' && <span className="text-gold font-bold">• Admin</span>}</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[
+                        { label: 'Reports', icon: FileText, view: 'history', color: 'from-blue-500/10 to-blue-600/5', iconColor: 'text-blue-500' },
+                        { label: 'Expenses', icon: Receipt, view: 'expense', color: 'from-orange-500/10 to-orange-600/5', iconColor: 'text-orange-500' },
+                        { label: 'Market', icon: TrendingUp, view: 'market', color: 'from-emerald-500/10 to-emerald-600/5', iconColor: 'text-emerald-500' },
+                        { label: 'Tech Stack', icon: Code2, view: 'tech-stack', color: 'from-cyan-500/10 to-cyan-600/5', iconColor: 'text-cyan-500' },
+                      ].map(item => (
+                        <motion.button
+                          key={item.label}
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => navigateTo(item.view)}
+                          className={`flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br ${item.color} border border-black/5 dark:border-white/10 text-left hover:shadow-lg transition-all`}
+                        >
+                          <item.icon size={20} className={item.iconColor} />
+                          <span className="text-sm font-bold text-gray-900 dark:text-white">{item.label}</span>
+                        </motion.button>
+                      ))}
+                    </div>
+                    {user.role === 'admin' && (
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => navigateTo('admin')}
+                        className="mt-3 w-full flex items-center justify-center gap-2 p-4 rounded-2xl bg-gradient-to-r from-gold/10 to-gold/5 border border-gold/20 hover:shadow-lg transition-all"
+                      >
+                        <Shield size={18} className="text-gold" />
+                        <span className="text-sm font-bold text-gold tracking-wider">ADMIN DASHBOARD</span>
+                      </motion.button>
+                    )}
+                  </motion.div>
+                </section>
+              )}
               <MandiTicker userLocation={userLocation} />
               <WeatherSection userLocation={userLocation} onWeatherDataFetch={setCurrentWeather} />
-              <DigitalTwin />
-              <PredictionForm onAnalyze={handleAnalysis} isLoading={loading} onLocationUpdate={setUserLocation} />
+              {user && (
+                <>
+                  <DigitalTwin />
+                  <PredictionForm onAnalyze={handleAnalysis} isLoading={loading} onLocationUpdate={setUserLocation} />
+                </>
+              )}
               <SupportSection />
             </motion.div>
           ) : scanning ? (
@@ -326,10 +500,17 @@ function App() {
         </AnimatePresence>
         </Suspense>
       </main>
-      <Suspense fallback={null}>
-        <ChatBot theme={theme} language={language} />
-      </Suspense>
+      <Footer />
+      <ScrollToTop />
+      <InstallPrompt />
+      {user && (
+        <Suspense fallback={null}>
+          <ChatBot theme={theme} language={language} />
+        </Suspense>
+      )}
     </div>
+    </ToastProvider>
+    </ErrorBoundary>
   );
 }
 

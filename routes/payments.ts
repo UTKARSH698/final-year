@@ -2,6 +2,7 @@ import { Router } from "express";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import { pool } from "../db.js";
+import { authenticate } from "../middleware/authenticate.js";
 
 const router = Router();
 
@@ -10,7 +11,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET || "dummy_secret",
 });
 
-router.post("/create-order", async (req, res) => {
+router.post("/create-order", authenticate, async (req, res) => {
   try {
     const { amount, currency = "INR" } = req.body;
     const order = await razorpay.orders.create({
@@ -25,7 +26,7 @@ router.post("/create-order", async (req, res) => {
   }
 });
 
-router.post("/verify-payment", async (req, res) => {
+router.post("/verify-payment", authenticate, async (req, res) => {
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
   const expected = crypto

@@ -12,7 +12,7 @@
 import { Router } from "express";
 import multer from "multer";
 import { predictCrop, predictDisease, CropInput } from "../services/mlService.js";
-import { AuthRequest } from "../middleware/authenticate.js";
+import { authenticate, AuthRequest } from "../middleware/authenticate.js";
 
 const router = Router();
 
@@ -27,7 +27,7 @@ const upload = multer({
 });
 
 // ─── POST /api/predict/crop ──────────────────────────────────────────────────
-router.post("/crop", async (req: AuthRequest, res) => {
+router.post("/crop", authenticate, async (req: AuthRequest, res) => {
   const { N, P, K, temperature, humidity, ph, rainfall } = req.body;
 
   const fields = { N, P, K, temperature, humidity, ph, rainfall };
@@ -47,7 +47,7 @@ router.post("/crop", async (req: AuthRequest, res) => {
 });
 
 // ─── POST /api/predict/disease ───────────────────────────────────────────────
-router.post("/disease", upload.single("image"), async (req: AuthRequest, res) => {
+router.post("/disease", authenticate, upload.single("image"), async (req: AuthRequest, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Image file is required" });
   }

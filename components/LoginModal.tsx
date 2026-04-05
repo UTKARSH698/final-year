@@ -1,6 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { X, Mail, Lock, User as UserIcon, Loader2, ArrowRight, Phone, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, Mail, Lock, User as UserIcon, Loader2, ArrowRight, Phone, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../AuthContext';
+
+function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
+  if (!pw) return { score: 0, label: '', color: '' };
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 10) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (score <= 1) return { score: 1, label: 'Weak', color: 'bg-red-500' };
+  if (score <= 2) return { score: 2, label: 'Fair', color: 'bg-orange-500' };
+  if (score <= 3) return { score: 3, label: 'Good', color: 'bg-yellow-500' };
+  if (score <= 4) return { score: 4, label: 'Strong', color: 'bg-emerald-500' };
+  return { score: 5, label: 'Excellent', color: 'bg-emerald-600' };
+}
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -28,6 +43,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [showSuccessPage, setShowSuccessPage] = useState(false);
 
   const { login, loginWithMsg91Token, sendOtp, retryOtp } = useAuth();
+  const pwStrength = useMemo(() => getPasswordStrength(password), [password]);
 
   // Reset state and reinit MSG91 once when modal opens
   useEffect(() => {
@@ -284,6 +300,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••"
                       className="w-full h-14 pl-12 pr-6 rounded-2xl bg-gray-50 dark:bg-black/20 border border-black/5 dark:border-white/10 outline-none focus:ring-2 focus:ring-gold/30 text-base font-bold text-gray-900 dark:text-white" />
                   </div>
+                  {isRegister && password && (
+                    <div className="mt-2 space-y-1.5">
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map(i => (
+                          <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i <= pwStrength.score ? pwStrength.color : 'bg-gray-200 dark:bg-white/10'}`} />
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[10px] font-bold tracking-wider ${pwStrength.score <= 1 ? 'text-red-500' : pwStrength.score <= 2 ? 'text-orange-500' : pwStrength.score <= 3 ? 'text-yellow-500' : 'text-emerald-500'}`}>
+                          {pwStrength.label}
+                        </span>
+                        <span className="text-[9px] text-gray-400">Use uppercase, numbers & symbols</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

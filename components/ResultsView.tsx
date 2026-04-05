@@ -6,10 +6,12 @@ import {
   AlertCircle, TrendingUp, Wallet,
   BarChart3, Activity, Info, ShieldAlert, Sparkles,
   Thermometer, Droplet, Zap, Bug, Pill, FlaskConical,
-  Calculator, Leaf, ArrowRight, TrendingDown, Eye, Check, Loader2, CalendarDays
+  Calculator, Leaf, ArrowRight, TrendingDown, Eye, Check, Loader2, CalendarDays, RefreshCw
 } from 'lucide-react';
 import { PredictionResult } from '../types';
 import { CropCalendar } from './CropCalendar';
+import { CropRotation } from './CropRotation';
+import { useToast } from './Toast';
 
 import { useAuth } from '../AuthContext';
 
@@ -24,8 +26,10 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
   const [isSaved, setIsSaved] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [showCropCalendar, setShowCropCalendar] = useState(false);
+  const [showCropRotation, setShowCropRotation] = useState(false);
   const [landAcres, setLandAcres] = useState<number>(1);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const totalChemCost = result.fertilizerNeeds.chemical.reduce((acc, c) => acc + parseInt(c.costEstimate.replace('₹', '')), 0);
   const totalOrgCost = result.fertilizerNeeds.organic.reduce((acc, c) => acc + parseInt(c.costEstimate.replace('₹', '')), 0);
@@ -44,13 +48,13 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
       }
     } else {
       await navigator.clipboard.writeText(shareText);
-      alert("Report summary copied to clipboard!");
+      toast("Report summary copied to clipboard!", 'success');
     }
   };
 
   const handleSave = async () => {
     if (!user) {
-      alert("Please login to save reports to your account.");
+      toast("Please login to save reports to your account.", 'info');
       onOpenLogin();
       return;
     }
@@ -114,7 +118,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
       await (window as any).html2pdf().set(opt).from(element).save();
     } catch (err) {
       console.error("PDF Export failed", err);
-      alert("Something went wrong during high-quality PDF generation. Opening system print as backup.");
+      toast("PDF generation failed. Opening system print as backup.", 'error');
       window.print();
     } finally {
       element.classList.remove('pdf-export-mode');
@@ -531,6 +535,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                  whileTap={{ scale: 0.95 }}
                  onClick={() => setShowCropCalendar(true)}
                  title="View Crop Schedule"
+                 aria-label="View weekly crop calendar schedule"
                  className="flex items-center gap-2 px-5 py-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-600 transition-all text-[10px] font-bold tracking-widest"
                >
                  <CalendarDays size={18} /> CROP CALENDAR
@@ -538,8 +543,19 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                <motion.button
                  whileHover={{ scale: 1.05 }}
                  whileTap={{ scale: 0.95 }}
+                 onClick={() => setShowCropRotation(true)}
+                 title="View Crop Rotation Plan"
+                 aria-label="View AI crop rotation recommendation"
+                 className="flex items-center gap-2 px-5 py-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-600 transition-all text-[10px] font-bold tracking-widest"
+               >
+                 <RefreshCw size={18} /> CROP ROTATION
+               </motion.button>
+               <motion.button
+                 whileHover={{ scale: 1.05 }}
+                 whileTap={{ scale: 0.95 }}
                  onClick={handleSave}
                  title="Save Report"
+                 aria-label={isSaved ? "Report saved" : "Save report to history"}
                  className={`p-4 rounded-2xl border border-black/10 dark:border-white/10 transition-all ${isSaved ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gold hover:text-black'}`}
                >
                  {isSaved ? <CheckCircle2 size={20} /> : <Save size={20} />}
@@ -550,6 +566,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                  onClick={handleExportPDF}
                  disabled={isExporting}
                  title="Download PDF Report"
+                 aria-label="Download prediction report as PDF"
                  className="flex items-center justify-center p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gold hover:text-black transition-all min-w-[3.5rem]"
                >
                  {isExporting ? <Loader2 size={20} className="animate-spin" /> : <Download size={20} />}
@@ -558,6 +575,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                  whileHover={{ scale: 1.02 }}
                  whileTap={{ scale: 0.98 }}
                  onClick={handleWhatsAppExport}
+                 aria-label="Share prediction report via WhatsApp"
                  className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-emerald-500 text-white font-bold tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-500/20"
                >
                  EXPORT TO WHATSAPP <Share2 size={18} />
@@ -574,6 +592,13 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
         duration={result.duration}
         state=""
         onClose={() => setShowCropCalendar(false)}
+      />
+    )}
+
+    {showCropRotation && (
+      <CropRotation
+        cropName={result.cropName}
+        onClose={() => setShowCropRotation(false)}
       />
     )}
     </>

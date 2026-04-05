@@ -10,7 +10,7 @@ const MAX_HISTORY = 40;
 const FAQ_CHIPS = [
   "How to improve soil Nitrogen?",
   "Best crop for Black Soil?",
-  "Current Wheat MSP 2024-25?",
+  "Current Wheat MSP 2026-27?",
   "Paddy blast disease treatment?",
   "PM-KISAN eligibility & apply",
   "Drip vs flood irrigation pros cons",

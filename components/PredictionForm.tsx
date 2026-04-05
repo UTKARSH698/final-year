@@ -7,6 +7,7 @@ import {
   Terminal, Wifi, Database, Radio
 } from 'lucide-react';
 import { UserLocation } from '../types';
+import { useToast } from './Toast';
 
 interface PredictionFormProps {
   onAnalyze: (data: any) => void;
@@ -44,6 +45,7 @@ const REGIONAL_DEFAULTS: Record<string, { rainfall: number, soil: string, n: num
 };
 
 export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoading, onLocationUpdate }) => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     n: 50,
     p: 50,
@@ -57,10 +59,13 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
   const [locating, setLocating] = useState(false);
   const [detectedAddress, setDetectedAddress] = useState<string | null>(null);
   const [detectedState, setDetectedState] = useState<string | null>(null);
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number; accuracy: number; altitude: number | null } | null>(null);
   const [showSoilInfo, setShowSoilInfo] = useState(false);
 
   const [iotMode, setIotMode] = useState(false);
   const [telemetry, setTelemetry] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!iotMode) return;
@@ -88,8 +93,43 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
     return () => clearInterval(interval);
   }, [iotMode]);
 
+  const validateField = (key: string, value: any): string => {
+    if (key === 'city' && (!value || !value.trim())) return 'Location is required — type or detect via GPS';
+    if (key === 'soilType' && value === "Don't know") return 'Select a soil type or detect location';
+    if (key === 'n' && (value < 1 || value > 140)) return 'Nitrogen should be 1-140 mg/kg';
+    if (key === 'p' && (value < 1 || value > 100)) return 'Phosphorus should be 1-100 mg/kg';
+    if (key === 'k' && (value < 1 || value > 100)) return 'Potassium should be 1-100 mg/kg';
+    if (key === 'ph' && (value < 4 || value > 10)) return 'pH should be between 4.0 and 10.0';
+    if (key === 'rainfall' && (value < 200 || value > 4000)) return 'Rainfall should be 200-4000 mm';
+    return '';
+  };
+
+  const validateAll = (): boolean => {
+    const errors: Record<string, string> = {};
+    const allTouched: Record<string, boolean> = {};
+    for (const key of ['city', 'soilType', 'n', 'p', 'k', 'ph', 'rainfall']) {
+      const err = validateField(key, (formData as any)[key]);
+      if (err) errors[key] = err;
+      allTouched[key] = true;
+    }
+    setFieldErrors(errors);
+    setTouched(allTouched);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleAnalyze = () => {
+    if (validateAll()) {
+      onAnalyze(formData);
+    } else {
+      toast('Please fix the highlighted fields before analyzing.', 'error');
+    }
+  };
+
   const handleManualLocation = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, city: e.target.value });
+    setTouched(t => ({ ...t, city: true }));
+    const err = validateField('city', e.target.value);
+    setFieldErrors(prev => err ? { ...prev, city: err } : (({ city: _, ...rest }) => rest)(prev));
   };
 
   const handleSoilChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -98,9 +138,9 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
       if (detectedState && REGIONAL_DEFAULTS[detectedState]) {
         const suggestedSoil = REGIONAL_DEFAULTS[detectedState].soil;
         setFormData(prev => ({ ...prev, soilType: suggestedSoil }));
-        alert(`Based on your detected location (${detectedState}), your soil is likely ${suggestedSoil}.`);
+        toast(`Based on your location (${detectedState}), soil set to ${suggestedSoil}.`, 'success');
       } else {
-        alert("Detect location first to auto-determine soil.");
+        toast("Detect location first to auto-determine soil.", 'info');
         setFormData(prev => ({ ...prev, soilType: value }));
       }
     } else {
@@ -121,19 +161,22 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
     setLocating(true);
     setDetectedAddress(null);
     setDetectedState(null);
+    setGpsCoords(null);
     if (!navigator.geolocation) {
-      alert("Geolocation unsupported.");
+      toast("Geolocation is not supported by your browser.", 'error');
       setLocating(false);
       return;
     }
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy, altitude } = position.coords;
+        setGpsCoords({ lat: latitude, lng: longitude, accuracy: Math.round(accuracy), altitude: altitude ? Math.round(altitude) : null });
         try {
-          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`);
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`);
           const data = await response.json();
           const address = data.address;
           const state = address.state || "Unknown";
+          const district = address.county || address.state_district || "";
           const city = address.city || address.town || address.village || state;
           setDetectedState(state);
           onLocationUpdate({ city, state, lat: latitude, lng: longitude });
@@ -143,15 +186,20 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
           } else {
             setFormData(prev => ({ ...prev, city }));
           }
-          setDetectedAddress(`${city}, ${state}`);
-        } catch (e) {
-          setDetectedAddress(`Lat: ${latitude.toFixed(2)}, Lng: ${longitude.toFixed(2)}`);
+          setDetectedAddress(`${city}${district ? `, ${district}` : ''}, ${state}`);
+          toast(`Location locked: ${city}, ${state} (±${Math.round(accuracy)}m)`, 'success');
+        } catch {
+          setDetectedAddress(`${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E`);
+          setFormData(prev => ({ ...prev, city: `${latitude.toFixed(4)}, ${longitude.toFixed(4)}` }));
         } finally {
           setLocating(false);
         }
       },
-      () => { setLocating(false); },
-      { timeout: 10000 }
+      (err) => {
+        setLocating(false);
+        toast(err.code === 1 ? "Location access denied. Please allow GPS." : "Could not detect location. Try again.", 'error');
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   };
 
@@ -279,6 +327,52 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                   {locating ? "Scanning..." : "Detect Location"}
               </motion.button>
           </div>
+          {touched.city && fieldErrors.city && (
+            <p className="text-red-500 text-xs font-bold mt-1 ml-2">{fieldErrors.city}</p>
+          )}
+
+          {/* Precise GPS Coordinates Panel */}
+          <AnimatePresence>
+            {gpsCoords && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="rounded-xl bg-emerald-500/5 border border-emerald-500/20 p-4 mt-2 mb-4"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-4 h-4 text-emerald-500" />
+                  <span className="text-[10px] font-bold tracking-widest text-emerald-600 dark:text-emerald-400 uppercase">Precise GPS Lock</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                  <div className="bg-white/50 dark:bg-black/20 rounded-lg px-3 py-2">
+                    <div className="text-gray-400 font-bold text-[9px] tracking-widest mb-0.5">LATITUDE</div>
+                    <div className="font-mono font-bold text-gray-900 dark:text-white">{gpsCoords.lat.toFixed(6)}°</div>
+                  </div>
+                  <div className="bg-white/50 dark:bg-black/20 rounded-lg px-3 py-2">
+                    <div className="text-gray-400 font-bold text-[9px] tracking-widest mb-0.5">LONGITUDE</div>
+                    <div className="font-mono font-bold text-gray-900 dark:text-white">{gpsCoords.lng.toFixed(6)}°</div>
+                  </div>
+                  <div className="bg-white/50 dark:bg-black/20 rounded-lg px-3 py-2">
+                    <div className="text-gray-400 font-bold text-[9px] tracking-widest mb-0.5">ACCURACY</div>
+                    <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400">±{gpsCoords.accuracy}m</div>
+                  </div>
+                  <div className="bg-white/50 dark:bg-black/20 rounded-lg px-3 py-2">
+                    <div className="text-gray-400 font-bold text-[9px] tracking-widest mb-0.5">ALTITUDE</div>
+                    <div className="font-mono font-bold text-gray-900 dark:text-white">{gpsCoords.altitude !== null ? `${gpsCoords.altitude}m` : 'N/A'}</div>
+                  </div>
+                </div>
+                <a
+                  href={`https://www.google.com/maps?q=${gpsCoords.lat},${gpsCoords.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 mt-3 text-[10px] font-bold tracking-widest text-emerald-600 dark:text-emerald-400 hover:text-gold transition-colors uppercase"
+                >
+                  <MapPin className="w-3 h-3" /> View on Google Maps
+                </a>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
              <div className="space-y-8">
@@ -315,7 +409,11 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                       value={(formData as any)[field.key]}
                       onChange={(e) => setFormData({...formData, [field.key]: parseInt(e.target.value)})}
                       className={`w-full h-1.5 rounded-lg appearance-none cursor-pointer transition-all ${iotMode ? 'bg-emerald-500/20 accent-emerald-500' : 'bg-gray-200 dark:bg-white/10 accent-gold hover:accent-emerald-500'}`}
+                      aria-label={field.label}
                     />
+                    {touched[field.key] && fieldErrors[field.key] && (
+                      <p className="text-red-500 text-[10px] font-bold mt-1">{fieldErrors[field.key]}</p>
+                    )}
                   </div>
                 ))}
              </div>
@@ -335,6 +433,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                     <select
                       value={formData.soilType}
                       onChange={handleSoilChange}
+                      aria-label="Select soil type"
                       className="w-full appearance-none bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-gray-900 dark:text-white outline-none cursor-pointer shadow-sm hover:bg-white dark:hover:bg-white/10"
                     >
                       {SOIL_TYPES.map(type => (
@@ -343,6 +442,9 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                     </select>
                     <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
                   </div>
+                  {touched.soilType && fieldErrors.soilType && (
+                    <p className="text-red-500 text-[10px] font-bold mt-1">{fieldErrors.soilType}</p>
+                  )}
                 </div>
 
                 <div className="group">
@@ -400,7 +502,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                 <motion.button 
                   whileHover={{ scale: 1.02, backgroundColor: '#D4AF37', color: '#000' }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => onAnalyze(formData)}
+                  onClick={handleAnalyze}
                   disabled={isLoading}
                   className="w-full mt-8 bg-charcoal dark:bg-white text-white dark:text-obsidian h-16 rounded-xl font-bold font-jakarta tracking-wider transition-all duration-300 flex items-center justify-center gap-2 group shadow-xl"
                 >

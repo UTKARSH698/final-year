@@ -325,8 +325,12 @@ export const History: React.FC<HistoryProps> = ({ onBack }) => {
               </button>
             </div>
           ) : filteredReports.length === 0 ? (
-            <div className="p-12 text-center rounded-3xl border border-dashed border-gray-300 dark:border-gray-800">
-              <p className="text-gray-500 text-sm">No reports found in your history.</p>
+            <div className="p-16 text-center rounded-3xl border border-dashed border-gray-300 dark:border-gray-800">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold/10 mb-6">
+                <FileText size={32} className="text-gold" />
+              </div>
+              <h3 className="text-lg font-outfit font-bold text-gray-700 dark:text-gray-300 mb-2">No Reports Yet</h3>
+              <p className="text-gray-400 text-sm max-w-sm mx-auto">Run your first crop analysis from the home page. All predictions, disease scans, and drone reports will appear here.</p>
             </div>
           ) : (
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">

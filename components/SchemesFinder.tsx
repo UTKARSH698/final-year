@@ -108,16 +108,37 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack }) => {
 
         {/* Results */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="relative w-16 h-16">
-              <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: 'linear' }} className="absolute inset-0 border-t-2 border-gold rounded-full" />
+          <div className="space-y-4 animate-pulse" aria-label="Searching government schemes">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-5 h-5 bg-gold/30 rounded-full" />
+              <div className="h-6 w-56 bg-gray-200 dark:bg-white/10 rounded-xl" />
             </div>
-            <p className="text-gray-500 font-bold">AI is matching schemes for your farm...</p>
+            {[1,2,3].map(i => (
+              <div key={i} className="bg-white dark:bg-charcoal border border-black/5 dark:border-white/10 rounded-2xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gold/20 rounded-xl" />
+                  <div className="h-5 w-48 bg-gray-200 dark:bg-white/10 rounded-lg" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-3 w-full bg-gray-100 dark:bg-white/5 rounded" />
+                  <div className="h-3 w-3/4 bg-gray-100 dark:bg-white/5 rounded" />
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <div className="h-6 w-20 bg-emerald-100 dark:bg-emerald-900/20 rounded-full" />
+                  <div className="h-6 w-24 bg-blue-100 dark:bg-blue-900/20 rounded-full" />
+                </div>
+              </div>
+            ))}
+            <p className="text-center text-gray-500 font-bold text-sm mt-4">AI is matching schemes for your farm...</p>
           </div>
         )}
 
         {!loading && searched && schemes.length === 0 && (
-          <div className="text-center py-12 text-gray-400 font-bold">No schemes found. Try again.</div>
+          <div className="text-center py-16">
+            <Search size={48} className="mx-auto mb-4 text-gray-300 dark:text-gray-700" />
+            <p className="text-gray-500 font-bold mb-2">No schemes matched your criteria</p>
+            <p className="text-gray-400 text-sm">Try changing the state, crop, or land size and search again.</p>
+          </div>
         )}
 
         {!loading && schemes.length > 0 && (
