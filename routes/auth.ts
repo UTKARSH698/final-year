@@ -147,12 +147,23 @@ router.post("/login", loginLimiter, async (req, res) => {
   const body = validate(LoginSchema, req.body, res);
   if (!body) return;
   const { email, phone, password } = body;
-  const { rows } = email
-    ? await pool.query("SELECT * FROM users WHERE email = $1", [email])
-    : await pool.query("SELECT * FROM users WHERE phone = $1", [phone]);
+
+  let rows: any[];
+  if (email) {
+    ({ rows } = await pool.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1)", [email]));
+  } else {
+    // Normalize: match phone with or without 91 country code prefix
+    const bare = phone!.replace(/\D/g, '').replace(/^91/, '');
+    ({ rows } = await pool.query(
+      "SELECT * FROM users WHERE phone = $1 OR phone = $2 OR phone = $3",
+      [phone, '91' + bare, bare]
+    ));
+  }
   const user = rows[0];
 
-  if (!user || !(await bcrypt.compare(password, user.password)))
+  if (!user) return res.status(401).json({ error: "Invalid credentials" });
+  if (!user.password) return res.status(401).json({ error: "This account uses OTP login. Please use 'Login with OTP' instead." });
+  if (!(await bcrypt.compare(password, user.password)))
     return res.status(401).json({ error: "Invalid credentials" });
 
   const token = signToken(user);

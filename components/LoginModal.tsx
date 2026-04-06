@@ -149,7 +149,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       } else {
         await login({
           email: authMethod === 'email' ? email : undefined,
-          phone: authMethod === 'phone' ? phone : undefined,
+          phone: authMethod === 'phone' ? ('91' + phone.replace(/\D/g, '')) : undefined,
           password,
         });
       }
