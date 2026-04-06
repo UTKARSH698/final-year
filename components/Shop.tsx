@@ -1,11 +1,14 @@
 
 import React, { useState, useMemo } from 'react';
-import { 
-  ArrowLeft, ShoppingBag, Star, Zap, ShoppingCart, 
-  Filter, Search, ChevronRight, TrendingUp, Info, 
-  X, Plus, Minus, Trash2, CreditCard, Truck, 
+import { motion } from 'framer-motion';
+import {
+  ArrowLeft, ShoppingBag, Star, Zap, ShoppingCart,
+  Filter, Search, ChevronRight, TrendingUp, Info,
+  X, Plus, Minus, Trash2, CreditCard, Truck,
   CheckCircle2, ArrowRight, Wallet, Activity,
-  Sprout, FlaskConical, Cpu, ThermometerSun, Droplets
+  Sprout, FlaskConical, Cpu, ThermometerSun, Droplets,
+  Shield, Clock, Award, ArrowUpDown, Leaf,
+  Bug, Headphones
 } from 'lucide-react';
 import { Product, ProductType, ThemeMode, CartItem } from '../types';
 import { MANDI_RATES } from '../constants';
@@ -69,10 +72,17 @@ const PRODUCTS: Product[] = [
   { id: 's54', name: 'Muskmelon Seeds', brand: 'AgriFuture Veg', type: 'Seed', basePrice: 2500, unit: 'Quintal', image: '', description: 'High brix aromatic muskmelon.', marketLinked: true, rating: 4.7 },
   { id: 's55', name: 'Cabbage Hybrid F1', brand: 'Seminis Elite', type: 'Seed', basePrice: 3100, unit: 'Quintal', image: '', description: 'Global standard F1 cabbage.', marketLinked: true, rating: 4.8 },
 
-  // --- FERTILIZERS (Text-only, no images) ---
+  // --- FERTILIZERS ---
   { id: 'f1', name: 'Nano Urea (Liquid)', brand: 'IFFCO Eco', type: 'Fertilizer', basePrice: 240, unit: '500ml Bottle', image: '', description: 'Advanced nitrogen delivery system. One 500ml bottle replaces one bag of conventional urea.', rating: 5.0 },
   { id: 'f2', name: 'Bio-Organic NPK Mix', brand: 'GreenEarth', type: 'Fertilizer', basePrice: 850, unit: '50kg Bag', image: '', description: '100% natural organic fertilizer enriched with beneficial soil microbes.', rating: 4.8 },
   { id: 'f3', name: 'Seaweed Liquid Extract', brand: 'Sagarika Bio', type: 'Fertilizer', basePrice: 650, unit: '1L Bottle', image: '', description: 'Organic growth promoter with over 60 natural nutrients and amino acids.', rating: 4.9 },
+  { id: 'f4', name: 'DAP (Di-Ammonium Phosphate)', brand: 'IFFCO Classic', type: 'Fertilizer', basePrice: 1350, unit: '50kg Bag', image: '', description: 'Essential phosphorus source for root development and early crop vigour.', rating: 4.7 },
+  { id: 'f5', name: 'Muriate of Potash (MOP)', brand: 'IPL Gold', type: 'Fertilizer', basePrice: 1700, unit: '50kg Bag', image: '', description: 'Potassium-rich fertilizer for fruit quality, disease resistance, and water retention.', rating: 4.6 },
+  { id: 'f6', name: 'Premium Vermicompost', brand: 'EarthWorm Pro', type: 'Fertilizer', basePrice: 450, unit: '25kg Bag', image: '', description: 'Nutrient-dense earthworm castings improving soil structure, aeration, and microbial life.', rating: 4.9 },
+  { id: 'f7', name: 'Humic Acid Granules', brand: 'HumiGold', type: 'Fertilizer', basePrice: 520, unit: '5kg Pack', image: '', description: 'Improves nutrient uptake efficiency by 30%. Enhances root zone CEC and water holding capacity.', rating: 4.8 },
+  { id: 'f8', name: 'Zinc Sulphate (21%)', brand: 'Zuari Agri', type: 'Fertilizer', basePrice: 180, unit: '5kg Pack', image: '', description: 'Micronutrient corrector for zinc-deficient soils. Essential for rice, wheat, and maize.', rating: 4.5 },
+  { id: 'f9', name: 'Calcium Nitrate', brand: 'Yara Liva', type: 'Fertilizer', basePrice: 950, unit: '25kg Bag', image: '', description: 'Water-soluble calcium and nitrogen for drip fertigation. Prevents blossom end rot.', rating: 4.7 },
+  { id: 'f10', name: 'Neem Cake (Organic)', brand: 'NeemGuard', type: 'Fertilizer', basePrice: 380, unit: '10kg Bag', image: '', description: 'Natural soil enricher and pest deterrent. Improves soil fertility while repelling nematodes.', rating: 4.8 },
 
   // --- EQUIPMENT (Actual images retained) ---
   {
@@ -82,7 +92,7 @@ const PRODUCTS: Product[] = [
     type: 'Equipment',
     basePrice: 4299,
     unit: 'Unit',
-    image: 'https://images.unsplash.com/photo-1594904351111-a072f80b1a71?auto=format&fit=crop&w=800&q=80',
+    image: '/equipment-soil-sensor.svg',
     description: 'Cloud-integrated probe for real-time NPK and moisture telemetry.',
     rating: 4.9
   },
@@ -93,7 +103,7 @@ const PRODUCTS: Product[] = [
     type: 'Equipment',
     basePrice: 28499,
     unit: 'Unit',
-    image: 'https://images.unsplash.com/photo-1516706009890-7607593f6f95?auto=format&fit=crop&w=800&q=80',
+    image: '/equipment-weather-station.svg',
     description: 'Hyper-local weather grid measuring barometric pressure, wind, and rainfall.',
     rating: 5.0
   },
@@ -104,17 +114,107 @@ const PRODUCTS: Product[] = [
     type: 'Equipment',
     basePrice: 5800,
     unit: 'Unit',
-    image: 'https://images.unsplash.com/photo-1558449028-b53a39d100fc?auto=format&fit=crop&w=800&q=80',
+    image: '/equipment-smart-valve.svg',
     description: 'AI-controlled valve that manages water flow based on regional evapotranspiration.',
     rating: 4.7
-  }
+  },
+  {
+    id: 'e4',
+    name: 'AgriDrone X1 Sprayer',
+    brand: 'AgriFuture Tech',
+    type: 'Equipment',
+    basePrice: 185000,
+    unit: 'Unit',
+    image: '/equipment-drone.svg',
+    description: '10L payload agricultural drone with RTK GPS. Covers 1 acre in 10 minutes with precision spraying.',
+    rating: 4.9
+  },
+  {
+    id: 'e5',
+    name: 'Solar Water Pump (3HP)',
+    brand: 'Tata Solar',
+    type: 'Equipment',
+    basePrice: 95000,
+    unit: 'Unit',
+    image: '/equipment-solar-pump.svg',
+    description: 'Off-grid solar powered submersible pump. Zero electricity bills, 25-year panel warranty.',
+    rating: 5.0
+  },
+  {
+    id: 'e6',
+    name: 'Smart Seed Drill',
+    brand: 'Mahindra Agri',
+    type: 'Equipment',
+    basePrice: 42000,
+    unit: 'Unit',
+    image: '/equipment-seed-drill.svg',
+    description: 'GPS-guided variable rate seeder with automatic depth control and seed spacing optimization.',
+    rating: 4.8
+  },
+  {
+    id: 'e7',
+    name: 'Portable Soil Test Kit',
+    brand: 'AgriFuture Tech',
+    type: 'Equipment',
+    basePrice: 3499,
+    unit: 'Kit',
+    image: '/equipment-soil-kit.svg',
+    description: 'Digital NPK, pH, EC, and moisture testing. Results in 60 seconds via Bluetooth app.',
+    rating: 4.7
+  },
+  {
+    id: 'e8',
+    name: 'GPS Field Mapper Pro',
+    brand: 'TrimbleAg',
+    type: 'Equipment',
+    basePrice: 18500,
+    unit: 'Unit',
+    image: '/equipment-gps-mapper.svg',
+    description: 'Sub-meter accuracy field boundary mapping with area calculator and zone management.',
+    rating: 4.8
+  },
+
+  // --- CROP PROTECTION ---
+  { id: 'p1', name: 'Neem Oil Bio-Pesticide', brand: 'NeemGuard', type: 'Protection', basePrice: 420, unit: '1L Bottle', image: '', description: 'Cold-pressed azadirachtin-rich neem extract. Controls 200+ pests organically with zero residue.', rating: 4.9 },
+  { id: 'p2', name: 'Trichoderma Bio-Fungicide', brand: 'BioShield', type: 'Protection', basePrice: 350, unit: '1kg Pack', image: '', description: 'Living fungal antagonist preventing root rot, wilt, and damping off. Soil and seed treatment.', rating: 4.8 },
+  { id: 'p3', name: 'Beauveria Bassiana', brand: 'BioShield', type: 'Protection', basePrice: 480, unit: '1kg Pack', image: '', description: 'Entomopathogenic fungus targeting whitefly, thrips, aphids, and borers without chemical residue.', rating: 4.7 },
+  { id: 'p4', name: 'Copper Oxychloride (50%)', brand: 'Bayer CropSci', type: 'Protection', basePrice: 580, unit: '500g Pack', image: '', description: 'Broad-spectrum contact fungicide for blight, downy mildew, and bacterial leaf spot.', rating: 4.6 },
+  { id: 'p5', name: 'Imidacloprid (17.8% SL)', brand: 'Syngenta', type: 'Protection', basePrice: 650, unit: '250ml Bottle', image: '', description: 'Systemic insecticide for sucking pests — aphids, jassids, and brown plant hopper.', rating: 4.5 },
+  { id: 'p6', name: 'Glyphosate Herbicide (41%)', brand: 'Excel Crop', type: 'Protection', basePrice: 520, unit: '1L Bottle', image: '', description: 'Non-selective post-emergent weedicide for plantation crops, orchards, and non-crop areas.', rating: 4.4 },
+  { id: 'p7', name: 'Yellow Sticky Traps (Pack of 50)', brand: 'TrapMaster', type: 'Protection', basePrice: 290, unit: 'Pack', image: '', description: 'UV-resistant dual-sided adhesive traps for whitefly, aphids, leaf miners, and thrips monitoring.', rating: 4.8 },
+  { id: 'p8', name: 'Pheromone Lure Trap Set', brand: 'PestWatch', type: 'Protection', basePrice: 380, unit: 'Set of 5', image: '', description: 'Species-specific pheromone traps for fruit fly, bollworm, and stem borer mass trapping.', rating: 4.7 },
+
+  // --- SERVICES ---
+  { id: 'sv1', name: 'Comprehensive Soil Test Report', brand: 'AgriFuture Labs', type: 'Service', basePrice: 999, unit: 'Report', image: '', description: 'Lab analysis of 12 parameters — NPK, pH, EC, OC, micronutrients. Includes fertilizer dosage recommendation.', rating: 5.0 },
+  { id: 'sv2', name: 'Drone Aerial Survey (per acre)', brand: 'AgriFuture Drone', type: 'Service', basePrice: 1500, unit: 'Acre', image: '', description: 'NDVI multispectral mapping, crop health assessment, pest hotspot detection with AI report.', rating: 4.9 },
+  { id: 'sv3', name: 'AI Crop Advisory (Season)', brand: 'AgriFuture AI', type: 'Service', basePrice: 2499, unit: 'Season', image: '', description: 'Personalized weekly AI-generated crop calendar, pest alerts, irrigation scheduling, and market timing.', rating: 4.9 },
+  { id: 'sv4', name: 'Pradhan Mantri Fasal Bima', brand: 'AgriFuture Assist', type: 'Service', basePrice: 750, unit: 'Application', image: '', description: 'End-to-end PMFBY crop insurance filing assistance. Document preparation, submission, and claim follow-up.', rating: 4.8 },
+];
+
+type SortOption = 'default' | 'price-low' | 'price-high' | 'rating' | 'name';
+
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  Seed: <Sprout size={40} />,
+  Fertilizer: <FlaskConical size={40} />,
+  Protection: <Bug size={40} />,
+  Service: <Headphones size={40} />,
+};
+
+const SERVICE_BENEFITS = [
+  { icon: <Truck size={28} />, title: 'Pan-India Logistics', desc: 'Free doorstep delivery on orders above ₹5,000 across all states', gradient: 'from-amber-500/20 to-orange-500/10', accent: 'text-amber-500', border: 'border-amber-500/20', image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=400&q=60' },
+  { icon: <Shield size={28} />, title: 'ICAR Certified Seeds', desc: 'Every batch lab-tested with 98%+ germination & govt quality seal', gradient: 'from-emerald-500/20 to-green-500/10', accent: 'text-emerald-500', border: 'border-emerald-500/20', image: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=400&q=60' },
+  { icon: <TrendingUp size={28} />, title: 'Live Mandi Pricing', desc: 'Real-time APMC mandi rates synced to regulate all product prices', gradient: 'from-blue-500/20 to-cyan-500/10', accent: 'text-blue-500', border: 'border-blue-500/20', image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=400&q=60' },
+  { icon: <Clock size={28} />, title: 'Express 48hr Dispatch', desc: 'Packed within 24 hours, delivered to your nearest hub in 48 hours', gradient: 'from-violet-500/20 to-purple-500/10', accent: 'text-violet-500', border: 'border-violet-500/20', image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=400&q=60' },
+  { icon: <Award size={28} />, title: 'Kisan Trust Promise', desc: '100% replacement guarantee if germination falls below stated rate', gradient: 'from-gold/20 to-yellow-500/10', accent: 'text-gold', border: 'border-gold/20', image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=400&q=60' },
+  { icon: <Leaf size={28} />, title: 'Organic & Sustainable', desc: 'Eco-certified inputs promoting soil health & sustainable farming', gradient: 'from-teal-500/20 to-emerald-500/10', accent: 'text-teal-500', border: 'border-teal-500/20', image: 'https://images.unsplash.com/photo-1471193945509-9ad0617afabf?auto=format&fit=crop&w=400&q=60' },
 ];
 
 export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBack, theme }) => {
   const { toast } = useToast();
   const [filter, setFilter] = useState<ProductType | 'All'>('All');
   const [search, setSearch] = useState('');
-  
+  const [sortBy, setSortBy] = useState<SortOption>('default');
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -134,10 +234,19 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
     });
   }, [avgMandiChange]);
 
-  const filtered = regulatedProducts.filter(p => 
-    (filter === 'All' || p.type === filter) &&
-    (p.name.toLowerCase().includes(search.toLowerCase()) || p.brand.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filtered = useMemo(() => {
+    const list = regulatedProducts.filter(p =>
+      (filter === 'All' || p.type === filter) &&
+      (p.name.toLowerCase().includes(search.toLowerCase()) || p.brand.toLowerCase().includes(search.toLowerCase()))
+    );
+    switch (sortBy) {
+      case 'price-low': return [...list].sort((a, b) => a.basePrice - b.basePrice);
+      case 'price-high': return [...list].sort((a, b) => b.basePrice - a.basePrice);
+      case 'rating': return [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      case 'name': return [...list].sort((a, b) => a.name.localeCompare(b.name));
+      default: return list;
+    }
+  }, [regulatedProducts, filter, search, sortBy]);
 
   const addToCart = (product: Product) => {
     setCart(prev => {
@@ -272,7 +381,7 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
              </div>
              
              <div className="flex bg-black/5 dark:bg-white/5 p-1.5 rounded-2xl border border-black/5 dark:border-white/10 overflow-x-auto whitespace-nowrap shadow-sm">
-                {['All', 'Seed', 'Fertilizer', 'Equipment'].map((cat) => (
+                {['All', 'Seed', 'Fertilizer', 'Equipment', 'Protection', 'Service'].map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setFilter(cat as any)}
@@ -301,6 +410,61 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
            />
         </div>
 
+        {/* Services Banner */}
+        <div className="mb-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {SERVICE_BENEFITS.map((s, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1, type: 'spring', stiffness: 120 }}
+              className={`relative overflow-hidden rounded-3xl border ${s.border} bg-white dark:bg-white/5 hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group cursor-default`}
+            >
+              <div className="flex items-stretch">
+                {/* Image */}
+                <div className="w-28 sm:w-32 shrink-0 relative overflow-hidden">
+                  <img
+                    src={s.image}
+                    alt={s.title}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className={`absolute inset-0 bg-gradient-to-r ${s.gradient} mix-blend-multiply`}></div>
+                  <div className={`absolute inset-0 flex items-center justify-center ${s.accent} drop-shadow-lg`}>
+                    {s.icon}
+                  </div>
+                </div>
+                {/* Content */}
+                <div className="flex-grow p-5">
+                  <div className={`text-[11px] font-bold tracking-[0.2em] uppercase mb-1.5 ${s.accent}`}>{s.title}</div>
+                  <p className="text-[12px] text-gray-600 dark:text-gray-400 leading-relaxed">{s.desc}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Sort & Count Bar */}
+        <div className="mb-8 flex items-center justify-between">
+          <div className="text-sm font-bold text-gray-500">
+            Showing <span className="text-gray-900 dark:text-white">{filtered.length}</span> {filtered.length === 1 ? 'product' : 'products'}
+            {filter !== 'All' && <span className="text-gold ml-1">in {filter}s</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            <ArrowUpDown size={14} className="text-gray-400" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="text-sm font-bold bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-gold/30 text-gray-700 dark:text-gray-300 cursor-pointer"
+            >
+              <option value="default">Default</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="rating">Top Rated</option>
+              <option value="name">Name A-Z</option>
+            </select>
+          </div>
+        </div>
+
         {/* Product Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
            {filtered.map((product) => (
@@ -308,38 +472,74 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
                key={product.id}
                className="group relative bg-white dark:bg-charcoal rounded-[3rem] overflow-hidden border border-black/5 dark:border-white/10 hover:border-gold/40 transition-all duration-700 shadow-xl hover:shadow-[0_0_80px_rgba(212,175,55,0.1)] hover:-translate-y-3 flex flex-col"
              >
-                {/* Image Container - Only for Equipment or products with valid image strings */}
+                {/* Image / Icon Header */}
                 {product.type === 'Equipment' && product.image ? (
                    <div className="h-72 relative overflow-hidden">
-                      <img 
-                        src={product.image} 
+                      <img
+                        src={product.image}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                      
+
                       <div className="absolute top-6 left-6 flex gap-3">
                         <span className="bg-black/40 backdrop-blur-md text-white text-[9px] font-bold px-4 py-1.5 rounded-full border border-white/20 tracking-widest uppercase">
                            {product.type}
                         </span>
                       </div>
                    </div>
-                ) : null}
+                ) : (
+                   <div className={`h-28 relative overflow-hidden flex items-center justify-center ${
+                     { Seed: 'bg-gradient-to-br from-emerald-500/10 via-green-500/5 to-transparent',
+                       Fertilizer: 'bg-gradient-to-br from-blue-500/10 via-cyan-500/5 to-transparent',
+                       Protection: 'bg-gradient-to-br from-red-500/10 via-orange-500/5 to-transparent',
+                       Service: 'bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-transparent'
+                     }[product.type] || ''
+                   }`}>
+                      <div className={`opacity-20 group-hover:opacity-40 group-hover:scale-110 transition-all duration-700 ${
+                        { Seed: 'text-emerald-500', Fertilizer: 'text-blue-500', Protection: 'text-red-500', Service: 'text-violet-500' }[product.type] || 'text-gray-500'
+                      }`}>
+                        {CATEGORY_ICONS[product.type]}
+                      </div>
+                      <div className="absolute top-4 left-6">
+                        <span className={`text-[9px] font-bold px-3 py-1 rounded-full tracking-widest uppercase border ${
+                          { Seed: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                            Fertilizer: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+                            Protection: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20',
+                            Service: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20'
+                          }[product.type] || ''
+                        }`}>
+                          {product.type}
+                        </span>
+                      </div>
+                   </div>
+                )}
 
                 {/* Info Container */}
-                <div className={`p-10 flex flex-col flex-grow ${product.type !== 'Equipment' ? 'justify-center min-h-[350px]' : ''}`}>
-                   <div className="flex items-center justify-between mb-4">
+                <div className={`p-10 flex flex-col flex-grow ${product.type !== 'Equipment' ? 'min-h-[280px]' : ''}`}>
+                   <div className="mb-4">
                       <div className="text-[10px] font-jakarta font-bold text-gold-dim tracking-[0.3em] uppercase">{product.brand}</div>
-                      {product.type !== 'Equipment' && (
-                         <span className="bg-black/5 dark:bg-white/5 text-[9px] font-bold px-3 py-1 rounded-full border border-black/5 dark:border-white/10 tracking-widest uppercase text-gray-500">
-                            {product.type}
-                         </span>
-                      )}
                    </div>
                    
-                   <h3 className="text-2xl font-outfit font-bold text-gray-900 dark:text-white mb-3 group-hover:text-gold transition-colors leading-tight">
+                   <h3 className="text-2xl font-outfit font-bold text-gray-900 dark:text-white mb-2 group-hover:text-gold transition-colors leading-tight">
                      {product.name}
                    </h3>
+
+                   {product.rating && (
+                     <div className="flex items-center gap-2 mb-3">
+                       <div className="flex gap-0.5">
+                         {[1, 2, 3, 4, 5].map(s => (
+                           <Star
+                             key={s}
+                             size={12}
+                             className={s <= Math.round(product.rating!) ? 'text-amber-400 fill-amber-400' : 'text-gray-300 dark:text-gray-600'}
+                           />
+                         ))}
+                       </div>
+                       <span className="text-[10px] font-bold text-gray-500">{product.rating.toFixed(1)}</span>
+                     </div>
+                   )}
+
                    <p className="text-sm text-gray-500 dark:text-gray-400 font-inter leading-relaxed mb-8 flex-grow">
                      {product.description}
                    </p>
@@ -439,7 +639,7 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
                          <img src={item.product.image} className="w-full h-full object-cover" alt={item.product.name} />
                        ) : (
                          <div className="p-4 bg-black/5 dark:bg-white/5 rounded-full">
-                            {item.product.type === 'Seed' ? <Sprout className="text-emerald-500/40" /> : <FlaskConical className="text-blue-500/40" />}
+                            {{ Seed: <Sprout className="text-emerald-500/40" />, Fertilizer: <FlaskConical className="text-blue-500/40" />, Protection: <Bug className="text-red-500/40" />, Service: <Headphones className="text-violet-500/40" /> }[item.product.type] || <ShoppingBag className="text-gray-500/40" />}
                          </div>
                        )}
                     </div>

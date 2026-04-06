@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="dsky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#81D4FA"/>
+      <stop offset="100%" stop-color="#E1F5FE"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#dsky)"/>
+  <rect y="320" width="800" height="80" fill="#66BB6A" opacity="0.5"/>
+  <!-- Crop rows -->
+  <g opacity="0.4">
+    <rect x="30" y="340" width="740" height="4" rx="2" fill="#388E3C"/>
+    <rect x="30" y="360" width="740" height="4" rx="2" fill="#2E7D32"/>
+    <rect x="30" y="380" width="740" height="4" rx="2" fill="#1B5E20"/>
+  </g>
+  <!-- Drone body -->
+  <rect x="360" y="140" width="80" height="35" rx="8" fill="#37474F" stroke="#263238" stroke-width="2"/>
+  <!-- Camera -->
+  <circle cx="400" cy="180" r="10" fill="#1a1a2e" stroke="#42A5F5" stroke-width="2"/>
+  <circle cx="400" cy="180" r="5" fill="#42A5F5" opacity="0.6"/>
+  <!-- Arms -->
+  <line x1="365" y1="150" x2="280" y2="120" stroke="#546E7A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="435" y1="150" x2="520" y2="120" stroke="#546E7A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="365" y1="165" x2="280" y2="195" stroke="#546E7A" stroke-width="5" stroke-linecap="round"/>
+  <line x1="435" y1="165" x2="520" y2="195" stroke="#546E7A" stroke-width="5" stroke-linecap="round"/>
+  <!-- Propellers -->
+  <g transform="translate(280, 120)">
+    <circle r="6" fill="#455A64"/>
+    <ellipse rx="35" ry="5" fill="#90A4AE" opacity="0.5">
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="0.3s" repeatCount="indefinite"/>
+    </ellipse>
+  </g>
+  <g transform="translate(520, 120)">
+    <circle r="6" fill="#455A64"/>
+    <ellipse rx="35" ry="5" fill="#90A4AE" opacity="0.5">
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="0.3s" repeatCount="indefinite"/>
+    </ellipse>
+  </g>
+  <g transform="translate(280, 195)">
+    <circle r="6" fill="#455A64"/>
+    <ellipse rx="35" ry="5" fill="#90A4AE" opacity="0.5">
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="0.3s" repeatCount="indefinite"/>
+    </ellipse>
+  </g>
+  <g transform="translate(520, 195)">
+    <circle r="6" fill="#455A64"/>
+    <ellipse rx="35" ry="5" fill="#90A4AE" opacity="0.5">
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="0.3s" repeatCount="indefinite"/>
+    </ellipse>
+  </g>
+  <!-- Spray particles -->
+  <g opacity="0.6">
+    <circle cx="380" cy="210" r="3" fill="#29B6F6"><animate attributeName="cy" values="200;310;200" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.8;0;0.8" dur="3s" repeatCount="indefinite"/></circle>
+    <circle cx="400" cy="220" r="2" fill="#29B6F6"><animate attributeName="cy" values="200;320;200" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.7;0;0.7" dur="2.5s" repeatCount="indefinite"/></circle>
+    <circle cx="420" cy="215" r="3" fill="#29B6F6"><animate attributeName="cy" values="200;300;200" dur="2.8s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0;0.6" dur="2.8s" repeatCount="indefinite"/></circle>
+  </g>
+  <!-- Tank -->
+  <rect x="375" y="142" width="50" height="15" rx="4" fill="#00E676" opacity="0.4"/>
+  <!-- LED -->
+  <circle cx="400" cy="140" r="3" fill="#00E676"><animate attributeName="opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite"/></circle>
+  <!-- HUD -->
+  <rect x="80" y="50" width="160" height="70" rx="10" fill="#0d1b2a" stroke="#00E676" stroke-width="2"/>
+  <text x="95" y="75" fill="#00E676" font-family="monospace" font-size="11" font-weight="bold">ALT: 8.2m</text>
+  <text x="95" y="92" fill="#4FC3F7" font-family="monospace" font-size="11" font-weight="bold">SPRAY: 2.4 L/min</text>
+  <text x="95" y="109" fill="#FFB74D" font-family="monospace" font-size="11" font-weight="bold">TANK: 7.6L / 10L</text>
+</svg>

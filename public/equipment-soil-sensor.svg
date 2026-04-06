@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#87CEEB"/>
+      <stop offset="100%" stop-color="#E0F0FF"/>
+    </linearGradient>
+    <linearGradient id="soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8B6914"/>
+      <stop offset="100%" stop-color="#5C4033"/>
+    </linearGradient>
+    <linearGradient id="probe" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#C0C0C0"/>
+      <stop offset="100%" stop-color="#808080"/>
+    </linearGradient>
+  </defs>
+  <!-- Sky -->
+  <rect width="800" height="200" fill="url(#sky)"/>
+  <!-- Ground -->
+  <rect y="200" width="800" height="200" fill="url(#soil)"/>
+  <!-- Grass line -->
+  <path d="M0 200 Q50 185 100 200 Q150 190 200 200 Q250 185 300 200 Q350 192 400 200 Q450 188 500 200 Q550 190 600 200 Q650 185 700 200 Q750 192 800 200" fill="#4CAF50" opacity="0.7"/>
+  <!-- Soil Sensor Probe -->
+  <rect x="370" y="120" width="60" height="200" rx="8" fill="url(#probe)" stroke="#666" stroke-width="2"/>
+  <!-- Sensor head -->
+  <rect x="350" y="100" width="100" height="40" rx="10" fill="#2196F3" stroke="#1565C0" stroke-width="2"/>
+  <!-- LED indicator -->
+  <circle cx="380" cy="120" r="5" fill="#4CAF50">
+    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Antenna -->
+  <line x1="430" y1="100" x2="430" y2="60" stroke="#666" stroke-width="3"/>
+  <circle cx="430" cy="55" r="6" fill="#FF5722"/>
+  <!-- Signal waves -->
+  <path d="M445 50 Q460 40 455 25" fill="none" stroke="#2196F3" stroke-width="2" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;0.1;0.6" dur="1.5s" repeatCount="indefinite"/>
+  </path>
+  <path d="M450 55 Q470 40 465 20" fill="none" stroke="#2196F3" stroke-width="2" opacity="0.4">
+    <animate attributeName="opacity" values="0.4;0.1;0.4" dur="1.5s" begin="0.3s" repeatCount="indefinite"/>
+  </path>
+  <!-- Data readout -->
+  <rect x="140" y="50" width="160" height="80" rx="12" fill="#1a1a2e" stroke="#2196F3" stroke-width="2"/>
+  <text x="160" y="80" fill="#4CAF50" font-family="monospace" font-size="14" font-weight="bold">NPK: 120-45-80</text>
+  <text x="160" y="100" fill="#FF9800" font-family="monospace" font-size="14" font-weight="bold">pH: 6.8</text>
+  <text x="160" y="118" fill="#2196F3" font-family="monospace" font-size="14" font-weight="bold">Moisture: 42%</text>
+  <!-- Connection line -->
+  <line x1="300" y1="90" x2="350" y2="115" stroke="#2196F3" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <!-- Small plants -->
+  <g transform="translate(180, 175)">
+    <line x1="0" y1="25" x2="0" y2="5" stroke="#388E3C" stroke-width="3"/>
+    <ellipse cx="-8" cy="8" rx="10" ry="6" fill="#4CAF50" transform="rotate(-30)"/>
+    <ellipse cx="8" cy="8" rx="10" ry="6" fill="#4CAF50" transform="rotate(30)"/>
+  </g>
+  <g transform="translate(600, 178)">
+    <line x1="0" y1="22" x2="0" y2="5" stroke="#388E3C" stroke-width="3"/>
+    <ellipse cx="-8" cy="8" rx="10" ry="6" fill="#4CAF50" transform="rotate(-30)"/>
+    <ellipse cx="8" cy="8" rx="10" ry="6" fill="#4CAF50" transform="rotate(30)"/>
+  </g>
+</svg>

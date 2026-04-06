@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#E8F5E9"/>
+      <stop offset="100%" stop-color="#C8E6C9"/>
+    </linearGradient>
+    <linearGradient id="pipe" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#78909C"/>
+      <stop offset="50%" stop-color="#607D8B"/>
+      <stop offset="100%" stop-color="#546E7A"/>
+    </linearGradient>
+    <linearGradient id="water" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#29B6F6"/>
+      <stop offset="100%" stop-color="#0288D1"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#sky3)"/>
+  <!-- Ground/field -->
+  <rect y="300" width="800" height="100" fill="#795548" opacity="0.3"/>
+  <!-- Crop rows -->
+  <g opacity="0.6">
+    <rect x="50" y="280" width="700" height="8" rx="4" fill="#66BB6A"/>
+    <rect x="50" y="320" width="700" height="8" rx="4" fill="#4CAF50"/>
+    <rect x="50" y="360" width="700" height="8" rx="4" fill="#388E3C"/>
+  </g>
+  <!-- Main pipe -->
+  <rect x="0" y="180" width="800" height="40" rx="6" fill="url(#pipe)" stroke="#455A64" stroke-width="2"/>
+  <!-- Water flow inside pipe -->
+  <rect x="10" y="190" width="780" height="20" rx="4" fill="url(#water)" opacity="0.4"/>
+  <!-- Smart Valve Body -->
+  <rect x="330" y="130" width="140" height="140" rx="16" fill="#37474F" stroke="#263238" stroke-width="3"/>
+  <!-- Valve handle/wheel -->
+  <circle cx="400" cy="200" r="40" fill="none" stroke="#FF9800" stroke-width="6"/>
+  <circle cx="400" cy="200" r="8" fill="#FF9800"/>
+  <line x1="400" y1="160" x2="400" y2="240" stroke="#FF9800" stroke-width="5"/>
+  <line x1="360" y1="200" x2="440" y2="200" stroke="#FF9800" stroke-width="5"/>
+  <!-- Digital display on valve -->
+  <rect x="345" y="138" width="110" height="35" rx="6" fill="#0d1b2a" stroke="#00E676" stroke-width="1.5"/>
+  <text x="355" y="155" fill="#00E676" font-family="monospace" font-size="11" font-weight="bold">FLOW: 2.4 L/m</text>
+  <text x="355" y="168" fill="#4FC3F7" font-family="monospace" font-size="9">AUTO MODE ON</text>
+  <!-- LED status -->
+  <circle cx="448" cy="145" r="4" fill="#00E676">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <!-- WiFi icon on valve -->
+  <g transform="translate(355, 245)">
+    <path d="M0 10 Q10 0 20 10" fill="none" stroke="#42A5F5" stroke-width="2" opacity="0.4"/>
+    <path d="M3 7 Q10 0 17 7" fill="none" stroke="#42A5F5" stroke-width="2" opacity="0.6"/>
+    <path d="M6 4 Q10 1 14 4" fill="none" stroke="#42A5F5" stroke-width="2" opacity="0.8"/>
+    <circle cx="10" cy="12" r="2" fill="#42A5F5"/>
+  </g>
+  <!-- Drip lines going down -->
+  <line x1="200" y1="220" x2="200" y2="280" stroke="#546E7A" stroke-width="4"/>
+  <line x1="400" y1="270" x2="400" y2="280" stroke="#546E7A" stroke-width="4"/>
+  <line x1="600" y1="220" x2="600" y2="280" stroke="#546E7A" stroke-width="4"/>
+  <!-- Water drops -->
+  <g>
+    <circle cx="200" cy="290" r="4" fill="#29B6F6" opacity="0.8">
+      <animate attributeName="cy" values="280;310;280" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="400" cy="290" r="4" fill="#29B6F6" opacity="0.8">
+      <animate attributeName="cy" values="280;310;280" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="600" cy="290" r="4" fill="#29B6F6" opacity="0.8">
+      <animate attributeName="cy" values="280;310;280" dur="2s" begin="1s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" begin="1s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  <!-- AI/Cloud connection -->
+  <rect x="560" y="60" width="180" height="80" rx="14" fill="#0d1b2a" stroke="#00E676" stroke-width="2"/>
+  <text x="580" y="85" fill="#B9F6CA" font-family="monospace" font-size="11" font-weight="bold">AI CONTROLLER</text>
+  <text x="580" y="103" fill="#4FC3F7" font-family="monospace" font-size="10">ET Rate: 4.2mm/d</text>
+  <text x="580" y="118" fill="#FFB74D" font-family="monospace" font-size="10">Soil: 38% moist</text>
+  <text x="580" y="133" fill="#81C784" font-family="monospace" font-size="10">Next: +15min</text>
+  <!-- Connection line to valve -->
+  <line x1="560" y1="100" x2="470" y2="155" stroke="#00E676" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.6"/>
+</svg>

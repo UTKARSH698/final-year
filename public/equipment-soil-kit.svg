@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <rect width="800" height="400" fill="#E8EAF6"/>
+  <!-- Kit box -->
+  <rect x="150" y="80" width="500" height="280" rx="20" fill="#FAFAFA" stroke="#BDBDBD" stroke-width="3"/>
+  <rect x="150" y="80" width="500" height="50" rx="20" fill="#37474F"/>
+  <rect x="150" y="105" width="500" height="25" fill="#37474F"/>
+  <text x="310" y="110" fill="white" font-family="sans-serif" font-size="18" font-weight="bold">SOIL TEST KIT</text>
+  <!-- pH meter -->
+  <rect x="190" y="160" width="60" height="140" rx="10" fill="#E0E0E0" stroke="#9E9E9E" stroke-width="2"/>
+  <rect x="200" y="170" width="40" height="30" rx="5" fill="#0d1b2a"/>
+  <text x="207" y="190" fill="#00E676" font-family="monospace" font-size="12" font-weight="bold">6.8</text>
+  <text x="200" y="215" fill="#666" font-family="monospace" font-size="8">pH</text>
+  <rect x="210" y="230" width="20" height="60" rx="4" fill="#78909C"/>
+  <!-- NPK vials -->
+  <g transform="translate(300, 160)">
+    <rect width="30" height="100" rx="6" fill="none" stroke="#E53935" stroke-width="2"/>
+    <rect y="40" width="30" height="60" rx="6" fill="#E53935" opacity="0.3"/>
+    <text x="7" y="120" fill="#E53935" font-family="monospace" font-size="10" font-weight="bold">N</text>
+  </g>
+  <g transform="translate(350, 160)">
+    <rect width="30" height="100" rx="6" fill="none" stroke="#2196F3" stroke-width="2"/>
+    <rect y="50" width="30" height="50" rx="6" fill="#2196F3" opacity="0.3"/>
+    <text x="8" y="120" fill="#2196F3" font-family="monospace" font-size="10" font-weight="bold">P</text>
+  </g>
+  <g transform="translate(400, 160)">
+    <rect width="30" height="100" rx="6" fill="none" stroke="#FF9800" stroke-width="2"/>
+    <rect y="30" width="30" height="70" rx="6" fill="#FF9800" opacity="0.3"/>
+    <text x="8" y="120" fill="#FF9800" font-family="monospace" font-size="10" font-weight="bold">K</text>
+  </g>
+  <!-- EC meter -->
+  <rect x="470" y="160" width="55" height="120" rx="10" fill="#E0E0E0" stroke="#9E9E9E" stroke-width="2"/>
+  <rect x="480" y="170" width="35" height="25" rx="4" fill="#0d1b2a"/>
+  <text x="484" y="188" fill="#4FC3F7" font-family="monospace" font-size="10" font-weight="bold">0.8</text>
+  <text x="480" y="210" fill="#666" font-family="monospace" font-size="8">EC</text>
+  <!-- Moisture probe -->
+  <rect x="555" y="160" width="55" height="120" rx="10" fill="#E0E0E0" stroke="#9E9E9E" stroke-width="2"/>
+  <rect x="565" y="170" width="35" height="25" rx="4" fill="#0d1b2a"/>
+  <text x="567" y="188" fill="#81C784" font-family="monospace" font-size="10" font-weight="bold">42%</text>
+  <text x="560" y="210" fill="#666" font-family="monospace" font-size="7">MOIST</text>
+  <!-- Bluetooth icon -->
+  <g transform="translate(400, 330)">
+    <circle r="14" fill="#1565C0"/>
+    <path d="M-4,-8 L4,0 L-4,8 M-4,-8 L4,-8 M-4,8 L4,8" fill="none" stroke="white" stroke-width="2"/>
+  </g>
+  <text x="330" y="355" fill="#1565C0" font-family="monospace" font-size="10" font-weight="bold">BLUETOOTH READY</text>
+</svg>

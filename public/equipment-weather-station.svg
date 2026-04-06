@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a237e"/>
+      <stop offset="60%" stop-color="#3949ab"/>
+      <stop offset="100%" stop-color="#7986cb"/>
+    </linearGradient>
+    <linearGradient id="pole" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#9E9E9E"/>
+      <stop offset="100%" stop-color="#BDBDBD"/>
+    </linearGradient>
+  </defs>
+  <!-- Sky -->
+  <rect width="800" height="400" fill="url(#sky2)"/>
+  <!-- Ground -->
+  <rect y="340" width="800" height="60" fill="#2E7D32" opacity="0.8"/>
+  <!-- Station Pole -->
+  <rect x="388" y="80" width="24" height="260" fill="url(#pole)" stroke="#757575" stroke-width="1"/>
+  <!-- Base plate -->
+  <rect x="360" y="330" width="80" height="15" rx="3" fill="#9E9E9E"/>
+  <!-- Anemometer (wind speed cups) -->
+  <circle cx="400" cy="100" r="8" fill="#E0E0E0" stroke="#757575" stroke-width="2"/>
+  <g transform="translate(400, 100)">
+    <line x1="0" y1="0" x2="30" y2="-15" stroke="#BDBDBD" stroke-width="3"/>
+    <circle cx="30" cy="-15" r="8" fill="#FAFAFA" stroke="#9E9E9E" stroke-width="1.5"/>
+    <line x1="0" y1="0" x2="-25" y2="-20" stroke="#BDBDBD" stroke-width="3"/>
+    <circle cx="-25" cy="-20" r="8" fill="#FAFAFA" stroke="#9E9E9E" stroke-width="1.5"/>
+    <line x1="0" y1="0" x2="-5" y2="30" stroke="#BDBDBD" stroke-width="3"/>
+    <circle cx="-5" cy="30" r="8" fill="#FAFAFA" stroke="#9E9E9E" stroke-width="1.5"/>
+    <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="3s" repeatCount="indefinite"/>
+  </g>
+  <!-- Wind vane -->
+  <g transform="translate(400, 160)">
+    <line x1="-40" y1="0" x2="40" y2="0" stroke="#FF9800" stroke-width="3"/>
+    <polygon points="40,0 30,-6 30,6" fill="#FF9800"/>
+    <circle cx="0" cy="0" r="5" fill="#FF9800"/>
+  </g>
+  <!-- Rain gauge -->
+  <rect x="430" y="190" width="30" height="50" rx="4" fill="none" stroke="#42A5F5" stroke-width="2.5"/>
+  <rect x="432" y="220" width="26" height="18" rx="2" fill="#42A5F5" opacity="0.5"/>
+  <!-- Solar panel -->
+  <rect x="330" y="200" width="50" height="30" rx="3" fill="#1565C0" stroke="#0D47A1" stroke-width="1.5" transform="rotate(-20, 355, 215)"/>
+  <line x1="340" y1="200" x2="375" y2="230" stroke="#1976D2" stroke-width="0.5" transform="rotate(-20, 355, 215)"/>
+  <line x1="350" y1="200" x2="365" y2="230" stroke="#1976D2" stroke-width="0.5" transform="rotate(-20, 355, 215)"/>
+  <!-- Temperature sensor -->
+  <rect x="415" y="260" width="16" height="40" rx="8" fill="#FFCDD2" stroke="#E53935" stroke-width="1.5"/>
+  <rect x="419" y="275" width="8" height="20" rx="4" fill="#E53935"/>
+  <!-- Data display -->
+  <rect x="550" y="80" width="180" height="120" rx="14" fill="#0d1b2a" stroke="#42A5F5" stroke-width="2"/>
+  <text x="570" y="110" fill="#4FC3F7" font-family="monospace" font-size="13" font-weight="bold">WIND: 12 km/h NW</text>
+  <text x="570" y="132" fill="#81C784" font-family="monospace" font-size="13" font-weight="bold">TEMP: 28.5°C</text>
+  <text x="570" y="154" fill="#FFB74D" font-family="monospace" font-size="13" font-weight="bold">PRESSURE: 1013hPa</text>
+  <text x="570" y="176" fill="#90CAF9" font-family="monospace" font-size="13" font-weight="bold">RAIN: 2.4mm/hr</text>
+  <!-- Connection line -->
+  <line x1="412" y1="160" x2="550" y2="130" stroke="#42A5F5" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.6"/>
+  <!-- Stars -->
+  <circle cx="100" cy="50" r="2" fill="white" opacity="0.7"/>
+  <circle cx="250" cy="30" r="1.5" fill="white" opacity="0.5"/>
+  <circle cx="650" cy="45" r="2" fill="white" opacity="0.6"/>
+  <circle cx="720" cy="25" r="1.5" fill="white" opacity="0.4"/>
+  <circle cx="150" cy="70" r="1" fill="white" opacity="0.5"/>
+</svg>

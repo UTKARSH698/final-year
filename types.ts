@@ -159,7 +159,7 @@ export enum Language {
   GU = 'Gujarati'
 }
 
-export type ProductType = 'Seed' | 'Fertilizer' | 'Equipment';
+export type ProductType = 'Seed' | 'Fertilizer' | 'Equipment' | 'Protection' | 'Service';
 
 export interface Product {
   id: string;

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="gmsky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a237e"/>
+      <stop offset="100%" stop-color="#283593"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#gmsky)"/>
+  <!-- Satellite view field patches -->
+  <rect x="50" y="50" width="700" height="300" rx="15" fill="#1B5E20" opacity="0.6"/>
+  <!-- Field boundaries -->
+  <polygon points="100,80 350,90 380,200 120,250" fill="#4CAF50" stroke="#FFB300" stroke-width="3" stroke-dasharray="8,4" opacity="0.7"/>
+  <polygon points="400,85 680,100 700,280 420,220" fill="#66BB6A" stroke="#FFB300" stroke-width="3" stroke-dasharray="8,4" opacity="0.6"/>
+  <polygon points="130,270 390,220 380,340 100,330" fill="#388E3C" stroke="#FFB300" stroke-width="3" stroke-dasharray="8,4" opacity="0.5"/>
+  <!-- GPS pins -->
+  <g transform="translate(100, 80)">
+    <circle r="6" fill="#FF5722"/>
+    <circle r="12" fill="none" stroke="#FF5722" stroke-width="1.5" opacity="0.5"><animate attributeName="r" values="12;20;12" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/></circle>
+  </g>
+  <g transform="translate(350, 90)">
+    <circle r="6" fill="#FF5722"/>
+  </g>
+  <g transform="translate(380, 200)">
+    <circle r="6" fill="#FF5722"/>
+  </g>
+  <g transform="translate(120, 250)">
+    <circle r="6" fill="#FF5722"/>
+  </g>
+  <g transform="translate(680, 100)">
+    <circle r="6" fill="#4CAF50"/>
+  </g>
+  <g transform="translate(700, 280)">
+    <circle r="6" fill="#4CAF50"/>
+  </g>
+  <!-- Area labels -->
+  <text x="180" y="170" fill="white" font-family="monospace" font-size="14" font-weight="bold" opacity="0.8">2.4 acres</text>
+  <text x="490" y="180" fill="white" font-family="monospace" font-size="14" font-weight="bold" opacity="0.8">3.1 acres</text>
+  <text x="200" y="300" fill="white" font-family="monospace" font-size="14" font-weight="bold" opacity="0.8">1.8 acres</text>
+  <!-- HUD panel -->
+  <rect x="50" y="50" width="180" height="90" rx="10" fill="#0d1b2a" stroke="#FFB300" stroke-width="2" opacity="0.95"/>
+  <text x="65" y="75" fill="#FFB300" font-family="monospace" font-size="11" font-weight="bold">GPS MAPPER PRO</text>
+  <text x="65" y="95" fill="#81C784" font-family="monospace" font-size="11" font-weight="bold">TOTAL: 7.3 acres</text>
+  <text x="65" y="112" fill="#4FC3F7" font-family="monospace" font-size="11" font-weight="bold">ZONES: 3</text>
+  <text x="65" y="129" fill="#FF8A65" font-family="monospace" font-size="11" font-weight="bold">ACC: ±0.5m</text>
+  <!-- Satellite icon -->
+  <g transform="translate(700, 50)" opacity="0.6">
+    <rect x="-15" y="-5" width="30" height="10" rx="3" fill="#90CAF9"/>
+    <rect x="-5" y="-15" width="10" height="30" rx="3" fill="#90CAF9"/>
+    <circle r="5" fill="#42A5F5"/>
+    <line x1="0" y1="15" x2="0" y2="30" stroke="#42A5F5" stroke-width="1" stroke-dasharray="3,2"/>
+  </g>
+</svg>
