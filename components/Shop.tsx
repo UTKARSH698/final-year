@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, ShoppingBag, Star, Zap, ShoppingCart,
@@ -13,6 +13,15 @@ import {
 import { Product, ProductType, ThemeMode, CartItem } from '../types';
 import { MANDI_RATES } from '../constants';
 import { useToast } from './Toast';
+
+/* Map product types to expense tracker categories */
+const PRODUCT_TO_EXPENSE: Record<ProductType, string> = {
+  Seed: 'Seeds',
+  Fertilizer: 'Fertilizer',
+  Equipment: 'Equipment',
+  Protection: 'Pesticide',
+  Service: 'Other',
+};
 
 const PRODUCTS: Product[] = [
   // --- SEEDS (Text-only, no images) ---
@@ -286,12 +295,32 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
     setIsCartOpen(false);
   };
 
+  /* Auto-log purchased items to Expense Tracker */
+  const logCartToExpenses = useCallback(async (items: CartItem[]) => {
+    const today = new Date().toISOString().split('T')[0];
+    for (const item of items) {
+      const category = PRODUCT_TO_EXPENSE[item.product.type] || 'Other';
+      const amount = item.product.basePrice * item.quantity;
+      const description = `${item.product.name}${item.quantity > 1 ? ` x${item.quantity}` : ''} — Store`;
+      try {
+        await fetch('/api/expenses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ category, description, amount, date: today }),
+        });
+      } catch { /* silent — expense logging is best-effort */ }
+    }
+  }, []);
+
   const confirmOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (paymentMethod === 'razorpay') {
       await handleRazorpayPayment();
     } else {
+      await logCartToExpenses(cart);
+      toast('Purchase added to Expense Tracker!', 'success');
       setCheckoutStep('success');
       setCart([]);
     }
@@ -329,6 +358,8 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
           });
           const verifyData = await verifyRes.json();
           if (verifyData.status === 'success') {
+            await logCartToExpenses(cart);
+            toast('Purchase added to Expense Tracker!', 'success');
             setCheckoutStep('success');
             setCart([]);
           } else {

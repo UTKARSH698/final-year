@@ -1,16 +1,18 @@
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, X, Send, Sparkles, Loader2, User, Bot, ChevronDown, Trash2,
-  Leaf, Bug, CloudRain, TrendingUp, Building2, Droplets, Mic, MicOff,
-  Copy, Check, RotateCcw, Maximize2, Minimize2, Search, Zap, Volume2
+  Leaf, Bug, CloudRain, TrendingUp, Building2, Droplets,
+  Copy, Check, RotateCcw, Maximize2, Minimize2, Search, Zap, Square,
+  Clock, ArrowDown
 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { streamChatResponse } from '../services/geminiService';
 import { ChatMessage, ThemeMode, Language } from '../types';
 
 const MAX_HISTORY = 40;
+const MAX_INPUT_CHARS = 500;
 
 const TOPIC_CATEGORIES = [
   { id: 'soil', label: 'Soil & Nutrients', icon: Leaf, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
@@ -71,6 +73,74 @@ const ALL_FAQS = [
   "How to read a soil health card?",
 ];
 
+/* ── Memoized Message Bubble ─────────────────── */
+const MessageBubble = memo(({ msg, idx, isLast, isStreaming, copiedIdx, onCopy, onRegenerate }: {
+  msg: ChatMessage; idx: number; isLast: boolean; isStreaming: boolean;
+  copiedIdx: number | null; onCopy: (text: string, idx: number) => void;
+  onRegenerate: () => void;
+}) => {
+  const isUser = msg.role === 'user';
+  const wordCount = msg.text ? msg.text.split(/\s+/).filter(Boolean).length : 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      className={`flex gap-2.5 group ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
+    >
+      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-1 ${
+        isUser ? 'bg-gold/20 text-gold' : 'bg-emerald-500/20 text-emerald-500'
+      }`}>
+        {isUser ? <User size={14} /> : <Bot size={14} />}
+      </div>
+      <div className="flex flex-col max-w-[82%]">
+        <div className={`p-3.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+          isUser
+            ? 'bg-gold text-black rounded-tr-none'
+            : 'bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-gray-200 rounded-tl-none border border-black/5 dark:border-white/5'
+        }`}>
+          {msg.text ? (
+            <div className="markdown-body prose prose-sm dark:prose-invert max-w-none">
+              <Markdown>{msg.text}</Markdown>
+            </div>
+          ) : (
+            <div className="flex gap-1 items-center h-5">
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" />
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+            </div>
+          )}
+        </div>
+        {/* Message Actions */}
+        {msg.text && msg.role === 'model' && !isStreaming && (
+          <div className="flex items-center gap-1.5 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={() => onCopy(msg.text, idx)}
+              className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+              title="Copy"
+            >
+              {copiedIdx === idx ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+            </button>
+            {isLast && (
+              <button
+                onClick={onRegenerate}
+                className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                title="Regenerate"
+              >
+                <RotateCcw size={12} />
+              </button>
+            )}
+            {wordCount > 10 && (
+              <span className="text-[8px] text-gray-400 dark:text-gray-500 ml-1">{wordCount} words</span>
+            )}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+});
+
 interface ChatBotProps {
   theme: ThemeMode;
   language: Language;
@@ -95,22 +165,45 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showScrollDown, setShowScrollDown] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  // Persist to localStorage
+  // Persist to localStorage (debounced)
   useEffect(() => {
-    const toSave = messages.slice(-MAX_HISTORY);
-    localStorage.setItem('agri_chat_history', JSON.stringify(toSave));
+    const timer = setTimeout(() => {
+      const toSave = messages.slice(-MAX_HISTORY);
+      localStorage.setItem('agri_chat_history', JSON.stringify(toSave));
+    }, 300);
+    return () => clearTimeout(timer);
   }, [messages]);
 
-  // Auto-scroll
-  useEffect(() => {
+  // Auto-scroll with smart detection
+  const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      requestAnimationFrame(() => {
+        scrollRef.current!.scrollTo({ top: scrollRef.current!.scrollHeight, behavior: 'smooth' });
+      });
     }
-  }, [messages, isStreaming]);
+  }, []);
+
+  useEffect(() => {
+    // Only auto-scroll if user is near bottom
+    const el = scrollRef.current;
+    if (!el) return;
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    if (isNearBottom) scrollToBottom();
+  }, [messages, isStreaming, scrollToBottom]);
+
+  // Track scroll position for "scroll to bottom" button
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setShowScrollDown(distFromBottom > 200);
+  }, []);
 
   // Auto-focus
   useEffect(() => {
@@ -121,22 +214,39 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
     if (showSearch) setTimeout(() => searchRef.current?.focus(), 100);
   }, [showSearch]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showSearch) { setShowSearch(false); setSearchQuery(''); }
+        else { setIsOpen(false); setIsExpanded(false); }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        setShowSearch(s => !s);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isOpen, showSearch]);
+
   // Message stats
   const stats = useMemo(() => {
     const userMsgs = messages.filter(m => m.role === 'user').length;
-    const botMsgs = messages.filter(m => m.role === 'model').length;
-    return { user: userMsgs, bot: botMsgs, total: messages.length };
+    return { user: userMsgs, total: messages.length };
   }, [messages]);
 
   // Filtered messages for search
   const filteredMessages = useMemo(() => {
     if (!searchQuery.trim()) return null;
+    const q = searchQuery.toLowerCase();
     return messages.map((m, i) => ({ ...m, _idx: i })).filter(m =>
-      m.text.toLowerCase().includes(searchQuery.toLowerCase())
+      m.text.toLowerCase().includes(q)
     );
   }, [messages, searchQuery]);
 
-  const handleSend = async (text: string) => {
+  const handleSend = useCallback(async (text: string) => {
     if (!text.trim() || isStreaming) return;
 
     const userMsg: ChatMessage = { role: 'user', text };
@@ -144,6 +254,9 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
     setInputValue('');
     setActiveTopic(null);
     setIsStreaming(true);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     try {
       const historyForApi = messages.slice(-MAX_HISTORY);
@@ -153,6 +266,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
       setMessages(prev => [...prev, { role: 'model', text: '' }]);
 
       for await (const chunk of responseStream) {
+        if (controller.signal.aborted) break;
         fullText += chunk.text;
         setMessages(prev => {
           const updated = [...prev];
@@ -160,49 +274,61 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
           return updated;
         });
       }
-    } catch (error) {
-      console.error('Chat error:', error);
-      setMessages(prev => [
-        ...prev,
-        { role: 'model', text: "Sorry, I couldn't reach the AI service right now. Please check your connection and try again." }
-      ]);
+    } catch (error: any) {
+      if (error?.name === 'AbortError' || controller.signal.aborted) {
+        // User stopped generation — keep partial text
+      } else {
+        console.error('Chat error:', error);
+        setMessages(prev => [
+          ...prev,
+          { role: 'model', text: "Sorry, I couldn't reach the AI service right now. Please check your connection and try again." }
+        ]);
+      }
     } finally {
       setIsStreaming(false);
+      abortRef.current = null;
     }
-  };
+  }, [isStreaming, messages, language]);
 
-  const clearChat = () => {
+  const stopGeneration = useCallback(() => {
+    abortRef.current?.abort();
+    setIsStreaming(false);
+  }, []);
+
+  const clearChat = useCallback(() => {
     const initial: ChatMessage[] = [{ role: 'model', text: 'Chat cleared. How can I help you now? 🌱' }];
     setMessages(initial);
     setActiveTopic(null);
     localStorage.removeItem('agri_chat_history');
-  };
+  }, []);
 
-  const copyMessage = (text: string, idx: number) => {
+  const copyMessage = useCallback((text: string, idx: number) => {
     navigator.clipboard.writeText(text);
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 2000);
-  };
+  }, []);
 
-  const regenerateLastResponse = async () => {
+  const regenerateLastResponse = useCallback(async () => {
     if (isStreaming || messages.length < 2) return;
-    // Find last user message
     let lastUserIdx = -1;
     for (let i = messages.length - 1; i >= 0; i--) {
       if (messages[i].role === 'user') { lastUserIdx = i; break; }
     }
     if (lastUserIdx === -1) return;
     const lastUserText = messages[lastUserIdx].text;
-    // Remove the last bot response
     setMessages(prev => prev.slice(0, lastUserIdx + 1));
-    // Re-send
     setIsStreaming(true);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
       const historyForApi = messages.slice(0, lastUserIdx);
       const responseStream = await streamChatResponse(historyForApi, lastUserText, language);
       let fullText = '';
       setMessages(prev => [...prev, { role: 'model', text: '' }]);
       for await (const chunk of responseStream) {
+        if (controller.signal.aborted) break;
         fullText += chunk.text;
         setMessages(prev => {
           const updated = [...prev];
@@ -214,12 +340,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
       setMessages(prev => [...prev, { role: 'model', text: "Sorry, I couldn't regenerate. Please try again." }]);
     } finally {
       setIsStreaming(false);
+      abortRef.current = null;
     }
-  };
-
-  const lastMsgIsStreaming = isStreaming && messages.length > 0 && messages[messages.length - 1].role === 'model';
+  }, [isStreaming, messages, language]);
 
   const currentFaqs = activeTopic ? FAQ_BY_TOPIC[activeTopic] : ALL_FAQS;
+
+  const charCount = inputValue.length;
+  const charWarning = charCount > MAX_INPUT_CHARS * 0.8;
 
   return (
     <div className="fixed bottom-6 right-6 z-[100] font-inter no-print">
@@ -235,7 +363,11 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
             <MessageSquare className="w-8 h-8 relative z-10" />
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white dark:border-obsidian animate-pulse" />
+            {messages.length > 1 && (
+              <div className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-white dark:border-obsidian flex items-center justify-center">
+                <span className="text-[8px] font-bold text-white">{messages.length - 1}</span>
+              </div>
+            )}
           </motion.button>
         )}
       </AnimatePresence>
@@ -247,51 +379,49 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className={`flex flex-col overflow-hidden shadow-2xl border rounded-[2.5rem] ${
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            className={`flex flex-col overflow-hidden shadow-2xl border rounded-[2.5rem] transition-all duration-300 ${
               isExpanded
                 ? 'w-[95vw] md:w-[700px] h-[90vh]'
                 : 'w-[90vw] md:w-[420px] h-[650px] max-h-[85vh]'
             } ${
-              theme === ThemeMode.DARK ? 'bg-charcoal/95 border-white/10' : 'bg-white/95 border-black/5'
+              theme === ThemeMode.DARK ? 'bg-[#1a1a1a] border-white/10' : 'bg-white border-black/10'
             }`}
           >
 
             {/* ── Header ─────────────────────────────────── */}
-            <div className="px-5 py-4 bg-gradient-to-r from-emerald-900 to-charcoal text-white flex items-center justify-between shrink-0">
+            <div className="px-5 py-4 bg-gradient-to-r from-emerald-900 via-emerald-800 to-charcoal text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 relative">
                   <Sparkles className="w-5 h-5 text-emerald-400" />
+                  <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-emerald-900 ${isStreaming ? 'bg-gold animate-pulse' : 'bg-emerald-500'}`} />
                 </div>
                 <div>
                   <h3 className="font-outfit font-bold text-base leading-tight">AgriAssistant</h3>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${isStreaming ? 'bg-gold animate-pulse' : 'bg-emerald-500 animate-pulse'}`} />
-                    <span className="text-[9px] text-emerald-400 font-bold tracking-widest uppercase">
-                      {isStreaming ? 'Thinking...' : `Online • ${stats.total} messages`}
-                    </span>
-                  </div>
+                  <span className="text-[9px] text-emerald-400/80 font-bold tracking-widest uppercase">
+                    {isStreaming ? 'Generating response...' : `Gemini AI • ${stats.total} messages`}
+                  </span>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 <button
                   onClick={() => setShowSearch(!showSearch)}
                   className={`p-2 rounded-lg transition-colors ${showSearch ? 'bg-white/20 text-white' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
-                  title="Search messages"
+                  title="Search (Ctrl+F)"
                 >
-                  <Search size={16} />
+                  <Search size={15} />
                 </button>
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white hidden md:flex"
                   title={isExpanded ? 'Minimize' : 'Expand'}
                 >
-                  {isExpanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  {isExpanded ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
                 </button>
                 <button onClick={clearChat} title="Clear chat" className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white">
-                  <Trash2 size={16} />
+                  <Trash2 size={15} />
                 </button>
-                <button onClick={() => { setIsOpen(false); setIsExpanded(false); }} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
+                <button onClick={() => { setIsOpen(false); setIsExpanded(false); }} title="Close (Esc)" className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/60 hover:text-white">
                   <ChevronDown className="w-5 h-5" />
                 </button>
               </div>
@@ -304,6 +434,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
                   className="px-4 pt-3 pb-2 border-b border-black/5 dark:border-white/5 overflow-hidden"
                 >
                   <div className="relative">
@@ -336,7 +467,6 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
                     onClick={() => {
                       setShowSearch(false);
                       setSearchQuery('');
-                      // Scroll to message
                       const el = scrollRef.current?.children[m._idx];
                       el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }}
@@ -349,59 +479,57 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
             )}
 
             {/* ── Messages ───────────────────────────────── */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth">
+            <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth relative">
               {messages.map((msg, i) => (
-                <div key={i} className={`flex gap-2.5 group ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-1 ${
-                    msg.role === 'user' ? 'bg-gold/20 text-gold' : 'bg-emerald-500/20 text-emerald-500'
-                  }`}>
-                    {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
-                  </div>
-                  <div className="flex flex-col max-w-[82%]">
-                    <div className={`p-3.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                      msg.role === 'user'
-                        ? 'bg-gold text-black rounded-tr-none'
-                        : 'bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-gray-200 rounded-tl-none border border-black/5 dark:border-white/5'
-                    }`}>
-                      {msg.text ? (
-                        <div className="markdown-body prose prose-sm dark:prose-invert max-w-none">
-                          <Markdown>{msg.text}</Markdown>
-                        </div>
-                      ) : (
-                        <div className="flex gap-1 items-center h-5">
-                          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" />
-                          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.2s]" />
-                          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.4s]" />
-                        </div>
-                      )}
-                    </div>
-                    {/* Message Actions */}
-                    {msg.text && msg.role === 'model' && !isStreaming && (
-                      <div className="flex items-center gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => copyMessage(msg.text, i)}
-                          className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-                          title="Copy"
-                        >
-                          {copiedIdx === i ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                        </button>
-                        {i === messages.length - 1 && (
-                          <button
-                            onClick={regenerateLastResponse}
-                            className="p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-                            title="Regenerate"
-                          >
-                            <RotateCcw size={12} />
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <MessageBubble
+                  key={`${i}-${msg.text.length}`}
+                  msg={msg}
+                  idx={i}
+                  isLast={i === messages.length - 1}
+                  isStreaming={isStreaming}
+                  copiedIdx={copiedIdx}
+                  onCopy={copyMessage}
+                  onRegenerate={regenerateLastResponse}
+                />
               ))}
 
+              {/* ── Inline Quick-Start (inside scroll area) ── */}
+              {messages.length <= 2 && !isStreaming && (
+                <div className="pt-2 space-y-3">
+                  {/* Topic pills — horizontal scroll */}
+                  <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+                    {TOPIC_CATEGORIES.map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setActiveTopic(activeTopic === cat.id ? null : cat.id)}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold tracking-wider uppercase whitespace-nowrap transition-all border ${
+                          activeTopic === cat.id
+                            ? `${cat.bg} ${cat.color} ${cat.border} shadow-sm`
+                            : 'border-transparent bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                        }`}
+                      >
+                        <cat.icon size={9} />
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                  {/* FAQ chips — only 4 shown */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {currentFaqs.slice(0, 4).map(chip => (
+                      <button
+                        key={chip}
+                        onClick={() => handleSend(chip)}
+                        className="px-2.5 py-1.5 rounded-full text-[9px] font-bold tracking-wider border border-gold/30 text-gold hover:bg-gold hover:text-black transition-all duration-200"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Typing indicator */}
-              {isStreaming && !lastMsgIsStreaming && (
+              {isStreaming && messages.length > 0 && !messages[messages.length - 1].text && (
                 <div className="flex gap-2.5">
                   <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center">
                     <Bot size={14} />
@@ -417,50 +545,39 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
               )}
             </div>
 
-            {/* ── Topic Categories ────────────────────────── */}
-            {messages.length < 6 && !isStreaming && (
-              <div className="px-4 pb-2 shrink-0">
-                <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
-                  {TOPIC_CATEGORIES.map(cat => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setActiveTopic(activeTopic === cat.id ? null : cat.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-bold tracking-wider uppercase whitespace-nowrap transition-all border ${
-                        activeTopic === cat.id
-                          ? `${cat.bg} ${cat.color} ${cat.border} shadow-sm`
-                          : 'border-transparent bg-gray-50 dark:bg-white/5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-                      }`}
-                    >
-                      <cat.icon size={10} />
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
+            {/* ── Scroll to Bottom Button ────────────────── */}
+            <AnimatePresence>
+              {showScrollDown && !isStreaming && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  onClick={scrollToBottom}
+                  className="absolute bottom-44 left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-gold/90 text-black shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-10"
+                >
+                  <ArrowDown size={14} />
+                </motion.button>
+              )}
+            </AnimatePresence>
+
+            {/* ── Stop Generation ─────────────────────────── */}
+            {isStreaming && (
+              <div className="px-4 pb-2 shrink-0 flex justify-center">
+                <button
+                  onClick={stopGeneration}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                >
+                  <Square size={10} className="fill-current" />
+                  Stop generating
+                </button>
               </div>
             )}
 
-            {/* ── FAQ Chips ──────────────────────────────── */}
-            {messages.length < 6 && !isStreaming && (
-              <div className="px-4 pb-3 shrink-0">
-                <div className="flex flex-wrap gap-1.5">
-                  {currentFaqs.map((chip, i) => (
-                    <button
-                      key={chip}
-                      onClick={() => handleSend(chip)}
-                      className="px-2.5 py-1.5 rounded-full text-[9px] font-bold tracking-wider border border-gold/30 text-gold hover:bg-gold hover:text-black transition-all duration-200"
-                    >
-                      {chip}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ── Suggested Follow-ups ───────────────────── */}
-            {messages.length >= 6 && messages.length < 20 && !isStreaming && messages[messages.length - 1]?.role === 'model' && (
+            {/* ── Suggested Follow-ups (only after several messages) ── */}
+            {messages.length >= 4 && messages.length < 20 && !isStreaming && messages[messages.length - 1]?.role === 'model' && (
               <div className="px-4 pb-2 shrink-0">
                 <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-                  {['Tell me more', 'What about organic alternatives?', 'Cost estimate?'].map(s => (
+                  {['Tell me more', 'Organic alternatives?', 'Cost estimate?'].map(s => (
                     <button
                       key={s}
                       onClick={() => handleSend(s)}
@@ -474,17 +591,26 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
             )}
 
             {/* ── Input ──────────────────────────────────── */}
-            <div className="p-4 border-t border-black/5 dark:border-white/10 bg-black/5 dark:bg-white/5 shrink-0">
+            <div className="p-4 border-t border-black/5 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.03] shrink-0">
               <form onSubmit={(e) => { e.preventDefault(); handleSend(inputValue); }} className="flex gap-2">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask about crops, soil, pests..."
-                  disabled={isStreaming}
-                  className="flex-1 h-11 px-4 rounded-2xl text-sm bg-white dark:bg-black/40 text-gray-900 dark:text-white outline-none border border-black/5 dark:border-white/5 focus:border-gold/50 transition-colors shadow-inner disabled:opacity-60"
-                />
+                <div className="flex-1 relative">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value.slice(0, MAX_INPUT_CHARS))}
+                    placeholder={isStreaming ? 'Waiting for response...' : 'Ask about crops, soil, pests...'}
+                    disabled={isStreaming}
+                    className="w-full h-11 px-4 pr-12 rounded-2xl text-sm bg-white dark:bg-black/40 text-gray-900 dark:text-white outline-none border border-black/5 dark:border-white/5 focus:border-gold/50 transition-colors shadow-inner disabled:opacity-60"
+                  />
+                  {charCount > 0 && (
+                    <span className={`absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-bold transition-colors ${
+                      charWarning ? 'text-red-400' : 'text-gray-300 dark:text-gray-600'
+                    }`}>
+                      {charCount}/{MAX_INPUT_CHARS}
+                    </span>
+                  )}
+                </div>
                 <button
                   type="submit"
                   disabled={!inputValue.trim() || isStreaming}
@@ -493,9 +619,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({ theme, language }) => {
                   {isStreaming ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                 </button>
               </form>
-              <p className="mt-1.5 text-[9px] text-center text-gray-400 dark:text-gray-500 font-medium uppercase tracking-[0.2em]">
-                Gemini AI • AgriFuture India
-              </p>
+              <div className="mt-1.5 flex items-center justify-center gap-2">
+                <p className="text-[9px] text-center text-gray-400 dark:text-gray-500 font-medium uppercase tracking-[0.2em]">
+                  Gemini AI • AgriFuture India
+                </p>
+                {stats.user > 0 && (
+                  <span className="text-[8px] text-gray-300 dark:text-gray-600">• {stats.user} Q&A</span>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
