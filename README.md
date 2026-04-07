@@ -13,14 +13,7 @@
 
 > A full-stack agricultural intelligence platform combining 6 AI modules, live market data, real-time weather, disease detection, drone analytics, and an e-commerce store — built for Indian farmers.
 
-**Final Year Project — ITM Vocational University, B.Tech CSE (Cloud Technology & Information Security)**
-
-| Role | Team Member |
-|------|-------------|
-| UI & Design Lead | Utkarsh Batham |
-| Model Training Lead | Nikhil Sharma |
-| Data Collection Lead | Hiren Mahida |
-| Deployment Lead | Harsh Kumar |
+**Built by Utkarsh Batham** — B.Tech CSE (Cloud Technology & Information Security), ITM Vocational University
 
 </div>
 
@@ -418,14 +411,9 @@ Import the repo into [Railway](https://railway.app/) — `railway.json` handles 
 
 ---
 
-## Team
+## Author
 
-| | Name | Role |
-|---|---|---|
-| 🎨 | **Utkarsh Batham** | UI & Design Lead — Full React/TypeScript frontend, design system |
-| 🤖 | Nikhil Sharma | Model Training Lead — AI model selection, Gemini integration |
-| 📊 | Hiren Mahida | Data Collection Lead — Agricultural dataset sourcing & preprocessing |
-| ☁️ | Harsh Kumar | Deployment Lead — Cloud hosting, CI/CD, documentation |
+**Utkarsh Batham** — Full-stack development, AI integration, UI/UX design, database architecture, deployment & DevOps
 
 ---
 
