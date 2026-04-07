@@ -52,8 +52,8 @@
 - **Field Analysis** — Detailed soil parameter input with IoT sensor bridge support
 - **Crop Calendar** — AI-generated week-by-week crop schedule
 - **Crop Rotation** — Crop rotation planning to maintain soil health
-- **Crop Guide** — Growing guides, best practices, and regional recommendations
-- **Government Schemes Finder** — State/crop/land-size filtered scheme eligibility search
+- **Crop Encyclopedia** — 59 crop varieties with NPK demand bars, season tags (Kharif/Rabi/Zaid), water level indicators, pH data, soil types, grid/list view toggle, 6 category filters (Cereal/Pulse/Cash Crop/Vegetable/Fruit/Spice), multi-sort (name/price/yield/duration/water), full-detail modal with growing tips, and up-to-3 crop comparison table
+- **Government Scheme Finder** — AI-powered discovery of 100+ schemes with eligibility match scores (0-98%), 7 category filters (Income/Insurance/Credit/Subsidy/Irrigation/Equipment), bookmark & compare up to 3 schemes side-by-side, total benefit calculator, popular schemes ticker, quick crop pills, search history, sort by relevance/amount, and copy scheme details
 
 ### 💳 Commerce & Finance
 - **AgriStore** — 58+ agricultural products (seeds, fertilizers, equipment) with Razorpay payment integration, ratings, sorting, and market-linked pricing
