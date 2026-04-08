@@ -137,23 +137,32 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
 
   /* ── Soil Report Upload ── */
   const compressSoilImage = (dataUrl: string): Promise<string> =>
-    new Promise((resolve) => {
+    new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
         const c = document.createElement('canvas');
         const maxDim = 1200;
-        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-        c.width = img.width * scale;
-        c.height = img.height * scale;
+        // For SVGs that report 0 dimensions, use a sensible default
+        const w = img.naturalWidth || 800;
+        const h = img.naturalHeight || 1100;
+        const scale = Math.min(1, maxDim / Math.max(w, h));
+        c.width = w * scale;
+        c.height = h * scale;
         c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
-        resolve(c.toDataURL('image/jpeg', 0.8));
+        resolve(c.toDataURL('image/jpeg', 0.85));
       };
+      img.onerror = () => reject(new Error('Failed to load image'));
       img.src = dataUrl;
     });
 
   const handleSoilReportUpload = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-      toast('Please upload an image or PDF of your soil report.', 'error');
+      toast('Please upload an image (JPG/PNG) or photo of your soil report.', 'error');
+      return;
+    }
+    // SVG files can't be sent to Gemini Vision — ask for a photo instead
+    if (file.type === 'image/svg+xml') {
+      toast('Please upload a JPG/PNG photo of your soil report, not an SVG file.', 'error');
       return;
     }
     setSoilReportError(null);
@@ -463,7 +472,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
 
             {!soilReportImage ? (
               <div className="flex flex-col sm:flex-row gap-3">
-                <input type="file" ref={soilReportInputRef} accept="image/*,.pdf" className="hidden" onChange={e => e.target.files?.[0] && handleSoilReportUpload(e.target.files[0])} />
+                <input type="file" ref={soilReportInputRef} accept="image/jpeg,image/png,image/webp,.pdf" className="hidden" onChange={e => e.target.files?.[0] && handleSoilReportUpload(e.target.files[0])} />
                 <input type="file" ref={soilCameraRef} accept="image/*" capture="environment" className="hidden" onChange={e => e.target.files?.[0] && handleSoilReportUpload(e.target.files[0])} />
                 <button
                   type="button"
