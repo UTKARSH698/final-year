@@ -1,13 +1,15 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  MapPin, ChevronRight, Loader2, CheckCircle, Crosshair, 
-  ChevronDown, Droplets, Info, Cpu, Zap, Activity, 
-  Terminal, Wifi, Database, Radio
+import {
+  MapPin, ChevronRight, Loader2, CheckCircle, Crosshair,
+  ChevronDown, Droplets, Info, Cpu, Zap, Activity,
+  Terminal, Wifi, Database, Radio,
+  FileUp, Camera, X, FileText, Sparkles, AlertTriangle
 } from 'lucide-react';
 import { UserLocation } from '../types';
 import { useToast } from './Toast';
+import { extractSoilReport, SoilReportData } from '../services/geminiService';
 
 interface PredictionFormProps {
   onAnalyze: (data: any) => void;
@@ -67,6 +69,14 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+  // Soil Report Upload
+  const [soilReportImage, setSoilReportImage] = useState<string | null>(null);
+  const [soilReportData, setSoilReportData] = useState<SoilReportData | null>(null);
+  const [soilReportLoading, setSoilReportLoading] = useState(false);
+  const [soilReportError, setSoilReportError] = useState<string | null>(null);
+  const soilReportInputRef = useRef<HTMLInputElement>(null);
+  const soilCameraRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (!iotMode) return;
 
@@ -119,10 +129,75 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
 
   const handleAnalyze = () => {
     if (validateAll()) {
-      onAnalyze(formData);
+      onAnalyze({ ...formData, soilReport: soilReportData || undefined });
     } else {
       toast('Please fix the highlighted fields before analyzing.', 'error');
     }
+  };
+
+  /* ── Soil Report Upload ── */
+  const compressSoilImage = (dataUrl: string): Promise<string> =>
+    new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        const maxDim = 1200;
+        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        c.width = img.width * scale;
+        c.height = img.height * scale;
+        c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', 0.8));
+      };
+      img.src = dataUrl;
+    });
+
+  const handleSoilReportUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      toast('Please upload an image or PDF of your soil report.', 'error');
+      return;
+    }
+    setSoilReportError(null);
+    setSoilReportLoading(true);
+    setSoilReportData(null);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const raw = reader.result as string;
+        const compressed = await compressSoilImage(raw);
+        setSoilReportImage(compressed);
+
+        const data = await extractSoilReport(compressed);
+        if (!data.isValid) {
+          setSoilReportError(data.errorMessage || 'This doesn\'t look like a soil report. Please upload a Soil Health Card or lab test result.');
+          setSoilReportLoading(false);
+          return;
+        }
+
+        setSoilReportData(data);
+        // Auto-fill form with extracted values
+        setFormData(prev => ({
+          ...prev,
+          n: Math.round(data.n),
+          p: Math.round(data.p),
+          k: Math.round(data.k),
+          ph: Math.round(data.ph * 10) / 10,
+          ...(data.soilType ? { soilType: data.soilType } : {}),
+        }));
+        toast('Soil report analyzed! Parameters auto-filled.', 'success');
+      } catch {
+        setSoilReportError('Failed to analyze the report. Please try a clearer image.');
+      } finally {
+        setSoilReportLoading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  }, [toast]);
+
+  const clearSoilReport = () => {
+    setSoilReportImage(null);
+    setSoilReportData(null);
+    setSoilReportError(null);
   };
 
   const handleManualLocation = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -259,7 +334,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
           <div className="mb-10 relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
                 <h2 className="text-3xl md:text-4xl font-outfit text-gray-900 dark:text-white font-bold">Field Analysis</h2>
-                <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm font-medium">Input soil parameters or use the IoT Bridge for live data.</p>
+                <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm font-medium">Upload your Soil Health Card, use IoT sensors, or enter parameters manually.</p>
               </div>
               <AnimatePresence>
                 {iotMode && (
@@ -373,6 +448,115 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* ── Soil Report Upload ──────────────────────────── */}
+          <div className="mb-10 relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                <FileText size={18} className="text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-sm font-outfit font-bold text-gray-900 dark:text-white">Have a Soil Health Card?</h3>
+                <p className="text-[10px] text-gray-400 font-medium">Upload your soil report and we'll auto-fill all parameters with AI.</p>
+              </div>
+            </div>
+
+            {!soilReportImage ? (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input type="file" ref={soilReportInputRef} accept="image/*,.pdf" className="hidden" onChange={e => e.target.files?.[0] && handleSoilReportUpload(e.target.files[0])} />
+                <input type="file" ref={soilCameraRef} accept="image/*" capture="environment" className="hidden" onChange={e => e.target.files?.[0] && handleSoilReportUpload(e.target.files[0])} />
+                <button
+                  type="button"
+                  onClick={() => soilReportInputRef.current?.click()}
+                  className="flex items-center gap-3 px-5 py-3.5 rounded-2xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 hover:border-amber-500/50 transition-all text-sm font-bold text-amber-700 dark:text-amber-400 flex-1"
+                >
+                  <FileUp size={18} /> Upload Soil Report
+                </button>
+                <button
+                  type="button"
+                  onClick={() => soilCameraRef.current?.click()}
+                  className="flex items-center gap-3 px-5 py-3.5 rounded-2xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 hover:border-amber-500/50 transition-all text-sm font-bold text-amber-700 dark:text-amber-400"
+                >
+                  <Camera size={18} /> Take Photo
+                </button>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 overflow-hidden">
+                {/* Report preview + status */}
+                <div className="flex items-start gap-4 p-4">
+                  <div className="w-20 h-20 rounded-xl overflow-hidden border border-amber-500/20 shrink-0 bg-white dark:bg-black/20">
+                    <img src={soilReportImage} alt="Soil Report" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {soilReportLoading && (
+                      <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                        <Loader2 size={16} className="animate-spin" />
+                        <span className="text-sm font-bold">AI is reading your soil report...</span>
+                      </div>
+                    )}
+                    {soilReportError && (
+                      <div className="flex items-start gap-2 text-red-500">
+                        <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                        <span className="text-sm font-medium">{soilReportError}</span>
+                      </div>
+                    )}
+                    {soilReportData && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles size={14} className="text-emerald-500" />
+                          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Report Analyzed Successfully</span>
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{soilReportData.summary}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { label: 'N', value: soilReportData.n, unit: 'mg/kg' },
+                            { label: 'P', value: soilReportData.p, unit: 'mg/kg' },
+                            { label: 'K', value: soilReportData.k, unit: 'mg/kg' },
+                            { label: 'pH', value: soilReportData.ph, unit: '' },
+                            ...(soilReportData.organicCarbon ? [{ label: 'OC', value: soilReportData.organicCarbon, unit: '%' }] : []),
+                          ].map(p => (
+                            <span key={p.label} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/10 text-[10px] font-bold">
+                              <span className="text-amber-600 dark:text-amber-400">{p.label}:</span>
+                              <span className="text-gray-900 dark:text-white">{typeof p.value === 'number' ? Math.round(p.value * 10) / 10 : p.value}{p.unit}</span>
+                            </span>
+                          ))}
+                          {soilReportData.soilType && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                              {soilReportData.soilType}
+                            </span>
+                          )}
+                        </div>
+                        {/* Micronutrients row */}
+                        {(soilReportData.zinc || soilReportData.iron || soilReportData.sulphur) ? (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {[
+                              { label: 'Zn', value: soilReportData.zinc },
+                              { label: 'Fe', value: soilReportData.iron },
+                              { label: 'Mn', value: soilReportData.manganese },
+                              { label: 'Cu', value: soilReportData.copper },
+                              { label: 'S', value: soilReportData.sulphur },
+                              { label: 'B', value: soilReportData.boron },
+                            ].filter(m => m.value && m.value > 0).map(m => (
+                              <span key={m.label} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/40 dark:bg-black/10 text-[9px] font-bold text-gray-500">
+                                {m.label}: {Math.round((m.value || 0) * 10) / 10}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearSoilReport}
+                    className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
              <div className="space-y-8">

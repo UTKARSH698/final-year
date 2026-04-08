@@ -340,8 +340,93 @@ const calculateFertilizerPlan = (crop: CropData, n: number, p: number, k: number
   };
 };
 
+/* ── Extract soil parameters from an uploaded Soil Health Card / report image ── */
+export interface SoilReportData {
+  isValid: boolean;
+  errorMessage?: string;
+  n: number;
+  p: number;
+  k: number;
+  ph: number;
+  organicCarbon?: number;
+  ec?: number;
+  zinc?: number;
+  iron?: number;
+  manganese?: number;
+  copper?: number;
+  sulphur?: number;
+  boron?: number;
+  soilType?: string;
+  summary: string;
+}
+
+export const extractSoilReport = async (base64Image: string): Promise<SoilReportData> => {
+  const imagePart = {
+    inlineData: {
+      data: base64Image.split(',')[1],
+      mimeType: base64Image.includes('image/png') ? 'image/png' : 'image/jpeg',
+    },
+  };
+  const textPart = {
+    text: `You are an expert soil scientist analyzing an Indian Soil Health Card or soil test report image.
+
+Extract ALL soil parameters visible in this document/image:
+
+1. First determine if this is a valid soil report/soil health card/soil test result.
+   - If NOT (e.g. random photo, non-soil document), set isValid=false with a helpful errorMessage.
+   - If YES, set isValid=true and extract every parameter you can see.
+
+2. For a valid soil report, extract:
+   - n: Nitrogen (kg/ha). Convert to mg/kg if needed (divide by ~2.24). If "Low/Medium/High" rating only: Low=30, Medium=55, High=80.
+   - p: Phosphorus (kg/ha → mg/kg). Low=10, Medium=30, High=55.
+   - k: Potassium (kg/ha → mg/kg). Low=20, Medium=50, High=75.
+   - ph: Soil pH value.
+   - organicCarbon: Organic Carbon % (if visible).
+   - ec: Electrical Conductivity dS/m (if visible).
+   - zinc, iron, manganese, copper, sulphur, boron: Micronutrients in mg/kg (if visible, else 0).
+   - soilType: Inferred soil type from the report or parameters (e.g. "Alluvial Soil", "Black Soil", "Red Soil", "Laterite Soil", "Loamy Soil").
+   - summary: A 1-2 sentence plain-English summary of the soil health (e.g. "Nitrogen-deficient clay soil with good potassium levels, pH slightly alkaline").
+
+Use your best judgment to normalize values. If a parameter is not visible, use reasonable defaults for Indian soils (N=50, P=35, K=50, pH=6.8).
+
+Respond strictly as JSON.`
+  };
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: { parts: [imagePart, textPart] },
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          isValid:       { type: Type.BOOLEAN },
+          errorMessage:  { type: Type.STRING },
+          n:             { type: Type.NUMBER },
+          p:             { type: Type.NUMBER },
+          k:             { type: Type.NUMBER },
+          ph:            { type: Type.NUMBER },
+          organicCarbon: { type: Type.NUMBER },
+          ec:            { type: Type.NUMBER },
+          zinc:          { type: Type.NUMBER },
+          iron:          { type: Type.NUMBER },
+          manganese:     { type: Type.NUMBER },
+          copper:        { type: Type.NUMBER },
+          sulphur:       { type: Type.NUMBER },
+          boron:         { type: Type.NUMBER },
+          soilType:      { type: Type.STRING },
+          summary:       { type: Type.STRING },
+        },
+        required: ['isValid', 'n', 'p', 'k', 'ph', 'summary'],
+      },
+    },
+  });
+
+  return JSON.parse(response.text || '{}');
+};
+
 export const getCropPrediction = async (
-  coords: Coordinates, 
+  coords: Coordinates,
   soilParams: { n: number; p: number; k: number; ph: number; soilType?: string; rainfall?: number },
   currentWeather?: WeatherData
 ): Promise<PredictionResult> => {
