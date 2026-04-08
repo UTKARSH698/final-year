@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState } from 'react';
-import { CloudRain, Wind, Droplets, Sun, Calendar, MapPin, Cloud, CloudLightning, CloudSnow, Loader2 } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { CloudRain, Wind, Droplets, Sun, Calendar, MapPin, Cloud, CloudLightning, CloudSnow, Loader2, RefreshCw, WifiOff } from 'lucide-react';
 import { UserLocation, WeatherData } from '../types';
 
 interface WeatherSectionProps {
@@ -19,40 +19,46 @@ const getWeatherCondition = (code: number) => {
 export const WeatherSection: React.FC<WeatherSectionProps> = ({ userLocation, onWeatherDataFetch }) => {
   const [loading, setLoading] = useState(false);
   const [realWeather, setRealWeather] = useState<any>(null);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    const fetchWeather = async () => {
-      setLoading(true);
-      const lat = userLocation?.lat || 22.3072;
-      const lng = userLocation?.lng || 73.1812;
+  const fetchWeather = useCallback(async () => {
+    setLoading(true);
+    setError(false);
+    const lat = userLocation?.lat || 22.3072;
+    const lng = userLocation?.lng || 73.1812;
 
-      try {
-        const response = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&hourly=relativehumidity_2m&daily=precipitation_probability_max&timezone=auto`
-        );
-        const data = await response.json();
-        setRealWeather(data);
-        
-        if (onWeatherDataFetch) {
-          onWeatherDataFetch({
-            temp: data.current_weather.temperature,
-            condition: getWeatherCondition(data.current_weather.weathercode).label,
-            humidity: data.hourly.relativehumidity_2m[0],
-            windSpeed: data.current_weather.windspeed,
-            rainProbability: data.daily.precipitation_probability_max[0]
-          });
-        }
-      } catch (error) {
-        console.error("Failed to fetch weather", error);
-      } finally {
-        setLoading(false);
+    try {
+      const response = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&hourly=relativehumidity_2m&daily=precipitation_probability_max&timezone=auto`
+      );
+      if (!response.ok) throw new Error('API error');
+      const data = await response.json();
+      setRealWeather(data);
+
+      if (onWeatherDataFetch) {
+        onWeatherDataFetch({
+          temp: data.current_weather.temperature,
+          condition: getWeatherCondition(data.current_weather.weathercode).label,
+          humidity: data.hourly.relativehumidity_2m[0],
+          windSpeed: data.current_weather.windspeed,
+          rainProbability: data.daily.precipitation_probability_max[0]
+        });
       }
-    };
-    fetchWeather();
-  }, [userLocation]);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }, [userLocation, onWeatherDataFetch]);
+
+  useEffect(() => { fetchWeather(); }, [fetchWeather]);
 
   const current = realWeather?.current_weather;
-  const condition = current ? getWeatherCondition(current.weathercode) : { label: 'Syncing...', icon: Loader2, color: 'text-white' };
+  const condition = error
+    ? { label: 'Offline', icon: WifiOff, color: 'text-red-400' }
+    : current
+      ? getWeatherCondition(current.weathercode)
+      : { label: 'Syncing...', icon: Loader2, color: 'text-white' };
   const TempIcon = condition.icon;
 
   return (
@@ -86,16 +92,22 @@ export const WeatherSection: React.FC<WeatherSectionProps> = ({ userLocation, on
                  <span className="text-2xl font-outfit text-blue-100 ml-1">C</span>
                </div>
                <div className="text-lg font-medium text-blue-100 mb-8">{condition.label}</div>
-               <div className="grid grid-cols-2 gap-4 border-t border-white/20 pt-6">
-                  <div>
-                    <div className="text-xs text-blue-200 mb-1 uppercase tracking-wider">Humidity</div>
-                    <div className="text-xl font-bold font-outfit">{realWeather?.hourly?.relativehumidity_2m?.[0] || '--'}%</div>
-                  </div>
-                  <div>
-                    <div className="text-xs text-blue-200 mb-1 uppercase tracking-wider">Wind</div>
-                    <div className="text-xl font-bold font-outfit">{current ? current.windspeed : '--'} km/h</div>
-                  </div>
-               </div>
+               {error ? (
+                 <button onClick={fetchWeather} className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-sm font-bold transition-all mt-2">
+                   <RefreshCw size={14} /> Retry Connection
+                 </button>
+               ) : (
+                 <div className="grid grid-cols-2 gap-4 border-t border-white/20 pt-6">
+                    <div>
+                      <div className="text-xs text-blue-200 mb-1 uppercase tracking-wider">Humidity</div>
+                      <div className="text-xl font-bold font-outfit">{realWeather?.hourly?.relativehumidity_2m?.[0] || '--'}%</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-blue-200 mb-1 uppercase tracking-wider">Wind</div>
+                      <div className="text-xl font-bold font-outfit">{current ? current.windspeed : '--'} km/h</div>
+                    </div>
+                 </div>
+               )}
              </div>
           </div>
 

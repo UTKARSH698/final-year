@@ -70,7 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-2 md:gap-4">
           
           {/* Navigation Buttons (Desktop) — only shown when logged in */}
-          {user && <div className="hidden lg:flex items-center gap-2 mr-4">
+          {user && <div className="hidden xl:flex items-center gap-1.5 mr-4">
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -138,7 +138,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>}
 
           {/* Navigation Buttons (Mobile - Icons Only) — only shown when logged in */}
-          {user && <div className="flex lg:hidden items-center gap-2" role="navigation" aria-label="Quick actions">
+          {user && <div className="flex xl:hidden items-center gap-1.5" role="navigation" aria-label="Quick actions">
             <button onClick={onNavigateToAgriDrone} aria-label="Drone analytics" className="p-2 rounded-full bg-gold/10 text-gold">
               <Plane size={18} />
             </button>

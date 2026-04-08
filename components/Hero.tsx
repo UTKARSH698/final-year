@@ -117,15 +117,19 @@ export const Hero: React.FC<HeroProps> = ({ language }) => {
 
     animate();
 
+    let resizeTimer: number;
     const handleResize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = width;
-      canvas.height = height;
+      clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+      }, 150);
     };
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => { window.removeEventListener('resize', handleResize); clearTimeout(resizeTimer); };
   }, []);
 
   const scrollToSection = (id: string) => {

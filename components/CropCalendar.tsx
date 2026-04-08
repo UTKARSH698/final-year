@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Loader2, Sprout, Droplets, ShieldAlert, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Calendar, Loader2, Sprout, Droplets, ShieldAlert, ChevronDown, ChevronUp, RefreshCw, AlertTriangle } from 'lucide-react';
 import { getCropCalendar } from '../services/geminiService';
 import { CropCalendarWeek } from '../types';
 
@@ -27,17 +27,19 @@ export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, 
   const [calendar, setCalendar] = useState<CropCalendarWeek[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
   const [expanded, setExpanded] = useState<number | null>(0);
 
   const load = async () => {
     if (loaded) return;
     setLoading(true);
+    setError(false);
     try {
       const data = await getCropCalendar(cropName, duration, state || 'India');
       setCalendar(data);
       setLoaded(true);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -85,7 +87,19 @@ export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, 
           )}
 
           {!loading && calendar.length === 0 && (
-            <div className="text-center py-12 text-gray-400">Failed to load schedule. Try again.</div>
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center">
+                <AlertTriangle size={28} className="text-amber-500" />
+              </div>
+              <p className="text-sm font-bold text-gray-500">{error ? 'Failed to generate schedule' : 'No schedule available'}</p>
+              <p className="text-xs text-gray-400 text-center max-w-xs">Check your internet connection and try again. AI needs a moment to build your crop calendar.</p>
+              <button
+                onClick={() => { setLoaded(false); load(); }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-sm hover:bg-emerald-500/20 transition-all"
+              >
+                <RefreshCw size={14} /> Retry
+              </button>
+            </div>
           )}
 
           {!loading && calendar.length > 0 && (

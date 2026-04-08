@@ -85,7 +85,7 @@ export const getTerrainAnalysis = async (coords: Coordinates): Promise<DroneAnal
       data = JSON.parse(jsonMatch[0]);
     }
   } catch (e) {
-    console.error("Failed to parse terrain analysis JSON", e);
+    // JSON parse failed — will use fallback defaults
   }
   
   // Map grounding chunks to sources if they exist and aren't in the JSON already

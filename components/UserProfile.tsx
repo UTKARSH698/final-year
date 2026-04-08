@@ -9,7 +9,7 @@ interface UserProfileProps {
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(user?.name || '');
   const [state, setState] = useState('');
@@ -30,8 +30,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
         setSaved(true);
         setEditing(false);
         setTimeout(() => setSaved(false), 2000);
-        // Reload user data
-        window.location.reload();
+        await refreshUser();
       }
     } finally {
       setSaving(false);

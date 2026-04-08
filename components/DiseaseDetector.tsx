@@ -514,12 +514,14 @@ export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack }) => {
                       key={sample.name}
                       onClick={() => loadSampleImage(sample)}
                       disabled={!!loadingSample}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-gold/30 hover:bg-gold/5 transition-all text-left group disabled:opacity-50"
+                      className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-gold/30 hover:bg-gold/5 transition-all text-left group disabled:opacity-50"
                     >
-                      <span className="text-2xl">{sample.emoji}</span>
-                      <div>
+                      <div className="w-12 h-12 rounded-lg overflow-hidden border border-black/10 dark:border-white/10 shrink-0 bg-[#1a2e1a]">
+                        <img src={sample.file} alt={sample.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="min-w-0">
                         <div className="text-xs font-bold text-gray-900 dark:text-white group-hover:text-gold transition-colors">{sample.name}</div>
-                        <div className="text-[9px] text-gray-400">{sample.desc}</div>
+                        <div className="text-[9px] text-gray-400 truncate">{sample.desc}</div>
                       </div>
                       {loadingSample === sample.name && <Loader2 size={12} className="animate-spin text-gold ml-auto" />}
                     </button>

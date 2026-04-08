@@ -103,6 +103,7 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack }) => {
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'relevance' | 'amount'>('relevance');
+  const [bookmarkToast, setBookmarkToast] = useState<string | null>(null);
 
   const handleSearch = async () => {
     if (!state || !crop) return;
@@ -130,7 +131,11 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack }) => {
   const toggleBookmark = (idx: number) => {
     setBookmarked(prev => {
       const next = new Set(prev);
-      next.has(idx) ? next.delete(idx) : next.add(idx);
+      const wasBookmarked = next.has(idx);
+      wasBookmarked ? next.delete(idx) : next.add(idx);
+      const schemeName = schemes[idx]?.name || 'Scheme';
+      setBookmarkToast(wasBookmarked ? `${schemeName} removed` : `${schemeName} saved!`);
+      setTimeout(() => setBookmarkToast(null), 1500);
       return next;
     });
   };
@@ -740,6 +745,21 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack }) => {
           </div>
         )}
       </div>
+
+      {/* Bookmark Toast */}
+      <AnimatePresence>
+        {bookmarkToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 30 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-3 rounded-2xl bg-charcoal dark:bg-white text-white dark:text-charcoal font-bold text-sm shadow-2xl"
+          >
+            <BookmarkCheck size={16} className="text-gold" />
+            {bookmarkToast}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Ticker Animation */}
       <style>{`

@@ -659,9 +659,12 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
 
             <div className="flex-grow overflow-y-auto p-10 space-y-8">
                {cart.length === 0 ? (
-                 <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
-                    <ShoppingCart size={64} className="mb-6" />
-                    <p className="font-bold tracking-widest uppercase text-xs">Basket is empty</p>
+                 <div className="h-full flex flex-col items-center justify-center text-center">
+                    <div className="w-20 h-20 rounded-full bg-gold/10 flex items-center justify-center mb-6">
+                      <ShoppingCart size={36} className="text-gold/50" />
+                    </div>
+                    <p className="font-bold tracking-widest uppercase text-xs text-gray-500 mb-2">Basket is empty</p>
+                    <p className="text-xs text-gray-400">Browse the store and add items to get started.</p>
                  </div>
                ) : cart.map((item) => (
                  <div key={item.product.id} className="flex gap-6 group animate-in slide-in-from-right-4">
@@ -713,6 +716,12 @@ export const Shop: React.FC<{ onBack: () => void, theme: ThemeMode }> = ({ onBac
                        <span className="text-gold">₹{total.toLocaleString()}</span>
                     </div>
                  </div>
+                 {subtotal > 0 && subtotal < 5000 && (
+                   <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs">
+                     <Truck size={14} className="text-amber-500 shrink-0" />
+                     <span className="text-amber-700 dark:text-amber-400 font-medium">Add ₹{(5000 - subtotal).toLocaleString()} more for <strong>free delivery</strong></span>
+                   </div>
+                 )}
                  <button 
                   onClick={handleCheckout}
                   className="w-full py-5 rounded-2xl bg-charcoal dark:bg-gold text-white dark:text-black font-bold tracking-[0.2em] hover:scale-[1.02] transition-all active:scale-95 shadow-2xl flex items-center justify-center gap-4"

@@ -4,6 +4,7 @@ import { User } from './types';
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  refreshUser: () => Promise<void>;
   login: (credentials: { email?: string; phone?: string; password: string }) => Promise<void>;
   register: (data: { email?: string; phone?: string; password: string; name: string; otp: string }) => Promise<void>;
   loginWithOtp: (otp: string) => Promise<void>;
@@ -248,7 +249,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithOtp, loginWithMsg91Token, registerWithEmailOtp, loginWithEmailOtp, registerWithPhoneOtp, loginWithPhoneOtp, register, sendOtp, retryOtp, logout }}>
+    <AuthContext.Provider value={{ user, loading, refreshUser: checkUser, login, loginWithOtp, loginWithMsg91Token, registerWithEmailOtp, loginWithEmailOtp, registerWithPhoneOtp, loginWithPhoneOtp, register, sendOtp, retryOtp, logout }}>
       {children}
     </AuthContext.Provider>
   );
