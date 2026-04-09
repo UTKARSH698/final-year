@@ -184,6 +184,14 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
         }
 
         setSoilReportData(data);
+        // Match AI soil type to closest dropdown option
+        let matchedSoil = '';
+        if (data.soilType) {
+          const lower = data.soilType.toLowerCase();
+          matchedSoil = SOIL_TYPES.find(t => t.toLowerCase() === lower)
+            || SOIL_TYPES.find(t => lower.includes(t.toLowerCase().split(' ')[0]) || t.toLowerCase().includes(lower.split(' ')[0]))
+            || '';
+        }
         // Auto-fill form with extracted values
         setFormData(prev => ({
           ...prev,
@@ -191,10 +199,10 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
           p: Math.round(data.p),
           k: Math.round(data.k),
           ph: Math.round(data.ph * 10) / 10,
-          ...(data.soilType ? { soilType: data.soilType } : {}),
+          ...(matchedSoil ? { soilType: matchedSoil } : {}),
         }));
         toast('Soil report analyzed! Parameters auto-filled.', 'success');
-      } catch {
+      } catch (err) {
         setSoilReportError('Failed to analyze the report. Please try a clearer image.');
       } finally {
         setSoilReportLoading(false);
@@ -570,8 +578,8 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
              <div className="space-y-8">
                 {[
-                  { label: 'Nitrogen (N)', key: 'n', min: 0, max: 140, unit: 'mg/kg', icon: Radio },
-                  { label: 'Phosphorus (P)', key: 'p', min: 0, max: 100, unit: 'mg/kg', icon: Database },
+                  { label: 'Nitrogen (N)', key: 'n', min: 0, max: 150, unit: 'mg/kg', icon: Radio },
+                  { label: 'Phosphorus (P)', key: 'p', min: 0, max: 80, unit: 'mg/kg', icon: Database },
                   { label: 'Potassium (K)', key: 'k', min: 0, max: 100, unit: 'mg/kg', icon: Radio },
                 ].map((field) => (
                   <div key={field.key} className={`group transition-all duration-500 ${iotMode ? 'opacity-90' : 'opacity-100'}`}>

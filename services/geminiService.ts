@@ -361,10 +361,13 @@ export interface SoilReportData {
 }
 
 export const extractSoilReport = async (base64Image: string): Promise<SoilReportData> => {
+  const mimeType = base64Image.startsWith('data:image/png') ? 'image/png'
+    : base64Image.startsWith('data:image/webp') ? 'image/webp'
+    : 'image/jpeg';
   const imagePart = {
     inlineData: {
       data: base64Image.split(',')[1],
-      mimeType: base64Image.includes('image/png') ? 'image/png' : 'image/jpeg',
+      mimeType,
     },
   };
   const textPart = {
@@ -376,15 +379,15 @@ Extract ALL soil parameters visible in this document/image:
    - If NOT (e.g. random photo, non-soil document), set isValid=false with a helpful errorMessage.
    - If YES, set isValid=true and extract every parameter you can see.
 
-2. For a valid soil report, extract:
-   - n: Nitrogen (kg/ha). Convert to mg/kg if needed (divide by ~2.24). If "Low/Medium/High" rating only: Low=30, Medium=55, High=80.
-   - p: Phosphorus (kg/ha → mg/kg). Low=10, Medium=30, High=55.
-   - k: Potassium (kg/ha → mg/kg). Low=20, Medium=50, High=75.
+2. For a valid soil report, extract these values ALL in mg/kg units (NOT kg/ha):
+   - n: Nitrogen in mg/kg. If card shows kg/ha, divide by 2.24 to convert. Final value must be 10–150. If "Low/Medium/High" only: Low=30, Medium=55, High=80.
+   - p: Phosphorus in mg/kg. If card shows kg/ha, divide by 2.24. Final value must be 5–80. If "Low/Medium/High" only: Low=10, Medium=30, High=55.
+   - k: Potassium in mg/kg. If card shows kg/ha, divide by 4.58 to convert. Final value must be 10–100. If "Low/Medium/High" only: Low=25, Medium=55, High=85.
    - ph: Soil pH value.
    - organicCarbon: Organic Carbon % (if visible).
    - ec: Electrical Conductivity dS/m (if visible).
    - zinc, iron, manganese, copper, sulphur, boron: Micronutrients in mg/kg (if visible, else 0).
-   - soilType: Inferred soil type from the report or parameters (e.g. "Alluvial Soil", "Black Soil", "Red Soil", "Laterite Soil", "Loamy Soil").
+   - soilType: Inferred soil type — MUST be exactly one of: "Alluvial Soil", "Black Soil (Regur)", "Red Soil", "Laterite Soil", "Desert / Arid Soil", "Forest / Mountain Soil", "Loamy Soil". Pick the closest match.
    - summary: A 1-2 sentence plain-English summary of the soil health (e.g. "Nitrogen-deficient clay soil with good potassium levels, pH slightly alkaline").
 
 Use your best judgment to normalize values. If a parameter is not visible, use reasonable defaults for Indian soils (N=50, P=35, K=50, pH=6.8).
@@ -392,37 +395,23 @@ Use your best judgment to normalize values. If a parameter is not visible, use r
 Respond strictly as JSON.`
   };
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: { parts: [imagePart, textPart] },
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          isValid:       { type: Type.BOOLEAN },
-          errorMessage:  { type: Type.STRING },
-          n:             { type: Type.NUMBER },
-          p:             { type: Type.NUMBER },
-          k:             { type: Type.NUMBER },
-          ph:            { type: Type.NUMBER },
-          organicCarbon: { type: Type.NUMBER },
-          ec:            { type: Type.NUMBER },
-          zinc:          { type: Type.NUMBER },
-          iron:          { type: Type.NUMBER },
-          manganese:     { type: Type.NUMBER },
-          copper:        { type: Type.NUMBER },
-          sulphur:       { type: Type.NUMBER },
-          boron:         { type: Type.NUMBER },
-          soilType:      { type: Type.STRING },
-          summary:       { type: Type.STRING },
-        },
-        required: ['isValid', 'n', 'p', 'k', 'ph', 'summary'],
-      },
-    },
-  });
-
-  return JSON.parse(response.text || '{}');
+  const models = ['gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.0-flash'];
+  let lastError: unknown;
+  for (const model of models) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: { parts: [imagePart, textPart] },
+      });
+      const text = response.text || '{}';
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      return JSON.parse(jsonMatch ? jsonMatch[0] : '{}');
+    } catch (err) {
+      lastError = err;
+      console.warn(`[SoilReport] ${model} failed:`, (err as any)?.message || err);
+    }
+  }
+  throw lastError;
 };
 
 export const getCropPrediction = async (

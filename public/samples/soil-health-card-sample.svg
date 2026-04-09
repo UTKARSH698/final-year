@@ -1,0 +1,200 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1100" viewBox="0 0 800 1100">
+  <defs>
+    <linearGradient id="headerGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1a5e1f"/>
+      <stop offset="100%" stop-color="#2d8a33"/>
+    </linearGradient>
+    <linearGradient id="footerGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c85a17"/>
+      <stop offset="100%" stop-color="#e87a2f"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="1100" fill="#fdf8f0" rx="12"/>
+  <rect x="15" y="15" width="770" height="1070" fill="none" stroke="#c8a96e" stroke-width="2" rx="8" stroke-dasharray="6,3"/>
+
+  <!-- Header Bar -->
+  <rect x="30" y="30" width="740" height="110" rx="8" fill="url(#headerGrad)"/>
+
+  <!-- Emblem circle -->
+  <circle cx="100" cy="85" r="35" fill="white" opacity="0.2"/>
+  <circle cx="100" cy="85" r="28" fill="white" opacity="0.15"/>
+  <text x="100" y="78" text-anchor="middle" fill="white" font-family="serif" font-size="14" font-weight="bold">GOVT</text>
+  <text x="100" y="95" text-anchor="middle" fill="white" font-family="serif" font-size="11">OF INDIA</text>
+
+  <text x="400" y="65" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="22" font-weight="bold">SOIL HEALTH CARD</text>
+  <text x="400" y="88" text-anchor="middle" fill="#b8e6b8" font-family="Arial,sans-serif" font-size="13" font-weight="bold">Ministry of Agriculture &amp; Farmers Welfare</text>
+  <text x="400" y="108" text-anchor="middle" fill="#90d890" font-family="Arial,sans-serif" font-size="11">Government of India — Swasth Dharaa, Khet Haraa</text>
+
+  <!-- Tricolor stripe -->
+  <rect x="30" y="140" width="740" height="3" fill="#FF9933"/>
+  <rect x="30" y="143" width="740" height="3" fill="white"/>
+  <rect x="30" y="146" width="740" height="3" fill="#138808"/>
+
+  <!-- Farmer Info Section -->
+  <rect x="40" y="160" width="720" height="120" rx="6" fill="white" stroke="#ddd" stroke-width="1"/>
+  <text x="60" y="185" fill="#1a5e1f" font-family="Arial,sans-serif" font-size="13" font-weight="bold">FARMER DETAILS</text>
+  <line x1="60" y1="192" x2="250" y2="192" stroke="#1a5e1f" stroke-width="1.5"/>
+
+  <text x="60" y="215" fill="#555" font-family="Arial,sans-serif" font-size="12">Farmer Name:</text>
+  <text x="180" y="215" fill="#111" font-family="Arial,sans-serif" font-size="12" font-weight="bold">Shri Ramesh Kumar Patel</text>
+
+  <text x="450" y="215" fill="#555" font-family="Arial,sans-serif" font-size="12">Card No:</text>
+  <text x="530" y="215" fill="#111" font-family="Arial,sans-serif" font-size="12" font-weight="bold">SHC/MP/2025/084721</text>
+
+  <text x="60" y="240" fill="#555" font-family="Arial,sans-serif" font-size="12">Village/Town:</text>
+  <text x="180" y="240" fill="#111" font-family="Arial,sans-serif" font-size="12" font-weight="bold">Mohgaon, Sehore</text>
+
+  <text x="450" y="240" fill="#555" font-family="Arial,sans-serif" font-size="12">State:</text>
+  <text x="530" y="240" fill="#111" font-family="Arial,sans-serif" font-size="12" font-weight="bold">Madhya Pradesh</text>
+
+  <text x="60" y="265" fill="#555" font-family="Arial,sans-serif" font-size="12">Survey No:</text>
+  <text x="180" y="265" fill="#111" font-family="Arial,sans-serif" font-size="12" font-weight="bold">142/3A</text>
+
+  <text x="450" y="265" fill="#555" font-family="Arial,sans-serif" font-size="12">Sample Date:</text>
+  <text x="560" y="265" fill="#111" font-family="Arial,sans-serif" font-size="12" font-weight="bold">12-Jan-2026</text>
+
+  <!-- Macro Nutrients Section -->
+  <rect x="40" y="295" width="720" height="240" rx="6" fill="white" stroke="#ddd" stroke-width="1"/>
+  <rect x="40" y="295" width="720" height="32" rx="6" fill="#f0f8f0"/>
+  <text x="60" y="316" fill="#1a5e1f" font-family="Arial,sans-serif" font-size="13" font-weight="bold">PRIMARY NUTRIENTS (Macro)</text>
+
+  <!-- Table Header -->
+  <rect x="55" y="340" width="690" height="28" rx="4" fill="#e8f5e8"/>
+  <text x="80" y="359" fill="#333" font-family="Arial,sans-serif" font-size="11" font-weight="bold">Parameter</text>
+  <text x="280" y="359" fill="#333" font-family="Arial,sans-serif" font-size="11" font-weight="bold">Value</text>
+  <text x="420" y="359" fill="#333" font-family="Arial,sans-serif" font-size="11" font-weight="bold">Unit</text>
+  <text x="550" y="359" fill="#333" font-family="Arial,sans-serif" font-size="11" font-weight="bold">Rating</text>
+  <text x="680" y="359" fill="#333" font-family="Arial,sans-serif" font-size="11" font-weight="bold">Ideal</text>
+
+  <!-- Nitrogen -->
+  <line x1="55" y1="375" x2="745" y2="375" stroke="#eee" stroke-width="1"/>
+  <text x="80" y="395" fill="#444" font-family="Arial,sans-serif" font-size="12">Nitrogen (N)</text>
+  <text x="280" y="395" fill="#111" font-family="Arial,sans-serif" font-size="13" font-weight="bold">185.4</text>
+  <text x="420" y="395" fill="#666" font-family="Arial,sans-serif" font-size="12">kg/ha</text>
+  <rect x="540" y="382" width="60" height="20" rx="10" fill="#FFF3CD"/>
+  <text x="570" y="396" text-anchor="middle" fill="#856404" font-family="Arial,sans-serif" font-size="10" font-weight="bold">LOW</text>
+  <text x="680" y="395" fill="#888" font-family="Arial,sans-serif" font-size="11">280-560</text>
+
+  <!-- Phosphorus -->
+  <line x1="55" y1="410" x2="745" y2="410" stroke="#eee" stroke-width="1"/>
+  <text x="80" y="430" fill="#444" font-family="Arial,sans-serif" font-size="12">Phosphorus (P)</text>
+  <text x="280" y="430" fill="#111" font-family="Arial,sans-serif" font-size="13" font-weight="bold">24.8</text>
+  <text x="420" y="430" fill="#666" font-family="Arial,sans-serif" font-size="12">kg/ha</text>
+  <rect x="540" y="417" width="75" height="20" rx="10" fill="#D4EDDA"/>
+  <text x="577" y="431" text-anchor="middle" fill="#155724" font-family="Arial,sans-serif" font-size="10" font-weight="bold">MEDIUM</text>
+  <text x="680" y="430" fill="#888" font-family="Arial,sans-serif" font-size="11">10-25</text>
+
+  <!-- Potassium -->
+  <line x1="55" y1="445" x2="745" y2="445" stroke="#eee" stroke-width="1"/>
+  <text x="80" y="465" fill="#444" font-family="Arial,sans-serif" font-size="12">Potassium (K)</text>
+  <text x="280" y="465" fill="#111" font-family="Arial,sans-serif" font-size="13" font-weight="bold">312.6</text>
+  <text x="420" y="465" fill="#666" font-family="Arial,sans-serif" font-size="12">kg/ha</text>
+  <rect x="540" y="452" width="60" height="20" rx="10" fill="#D4EDDA"/>
+  <text x="570" y="466" text-anchor="middle" fill="#155724" font-family="Arial,sans-serif" font-size="10" font-weight="bold">HIGH</text>
+  <text x="680" y="465" fill="#888" font-family="Arial,sans-serif" font-size="11">110-280</text>
+
+  <!-- pH and OC -->
+  <line x1="55" y1="480" x2="745" y2="480" stroke="#eee" stroke-width="1"/>
+  <text x="80" y="500" fill="#444" font-family="Arial,sans-serif" font-size="12">Soil pH</text>
+  <text x="280" y="500" fill="#111" font-family="Arial,sans-serif" font-size="13" font-weight="bold">7.3</text>
+  <text x="420" y="500" fill="#666" font-family="Arial,sans-serif" font-size="12">—</text>
+  <rect x="540" y="487" width="90" height="20" rx="10" fill="#CCE5FF"/>
+  <text x="585" y="501" text-anchor="middle" fill="#004085" font-family="Arial,sans-serif" font-size="10" font-weight="bold">ALKALINE</text>
+  <text x="680" y="500" fill="#888" font-family="Arial,sans-serif" font-size="11">6.5-7.5</text>
+
+  <line x1="55" y1="515" x2="745" y2="515" stroke="#eee" stroke-width="1"/>
+  <text x="80" y="520" fill="#444" font-family="Arial,sans-serif" font-size="12">Organic Carbon</text>
+  <text x="280" y="520" fill="#111" font-family="Arial,sans-serif" font-size="13" font-weight="bold">0.48</text>
+  <text x="420" y="520" fill="#666" font-family="Arial,sans-serif" font-size="12">%</text>
+  <rect x="540" y="507" width="60" height="20" rx="10" fill="#FFF3CD"/>
+  <text x="570" y="521" text-anchor="middle" fill="#856404" font-family="Arial,sans-serif" font-size="10" font-weight="bold">LOW</text>
+  <text x="680" y="520" fill="#888" font-family="Arial,sans-serif" font-size="11">&gt;0.75</text>
+
+  <!-- EC -->
+  <line x1="55" y1="530" x2="745" y2="530" stroke="#eee" stroke-width="1"/>
+
+  <!-- Micronutrients Section -->
+  <rect x="40" y="550" width="720" height="230" rx="6" fill="white" stroke="#ddd" stroke-width="1"/>
+  <rect x="40" y="550" width="720" height="32" rx="6" fill="#fff8f0"/>
+  <text x="60" y="571" fill="#c85a17" font-family="Arial,sans-serif" font-size="13" font-weight="bold">MICRONUTRIENTS</text>
+
+  <!-- Micro Table Header -->
+  <rect x="55" y="595" width="690" height="28" rx="4" fill="#fef3e8"/>
+  <text x="80" y="614" fill="#333" font-family="Arial,sans-serif" font-size="11" font-weight="bold">Nutrient</text>
+  <text x="250" y="614" fill="#333" font-family="Arial,sans-serif" font-size="11" font-weight="bold">Value (mg/kg)</text>
+  <text x="430" y="614" fill="#333" font-family="Arial,sans-serif" font-size="11" font-weight="bold">Rating</text>
+  <text x="600" y="614" fill="#333" font-family="Arial,sans-serif" font-size="11" font-weight="bold">Critical Limit</text>
+
+  <!-- Zinc -->
+  <line x1="55" y1="630" x2="745" y2="630" stroke="#eee" stroke-width="1"/>
+  <text x="80" y="650" fill="#444" font-family="Arial,sans-serif" font-size="12">Zinc (Zn)</text>
+  <text x="250" y="650" fill="#111" font-family="Arial,sans-serif" font-size="13" font-weight="bold">0.52</text>
+  <rect x="420" y="637" width="80" height="20" rx="10" fill="#F8D7DA"/>
+  <text x="460" y="651" text-anchor="middle" fill="#721C24" font-family="Arial,sans-serif" font-size="10" font-weight="bold">DEFICIENT</text>
+  <text x="600" y="650" fill="#888" font-family="Arial,sans-serif" font-size="11">&gt;0.6</text>
+
+  <!-- Iron -->
+  <line x1="55" y1="665" x2="745" y2="665" stroke="#eee" stroke-width="1"/>
+  <text x="80" y="685" fill="#444" font-family="Arial,sans-serif" font-size="12">Iron (Fe)</text>
+  <text x="250" y="685" fill="#111" font-family="Arial,sans-serif" font-size="13" font-weight="bold">6.8</text>
+  <rect x="420" y="672" width="85" height="20" rx="10" fill="#D4EDDA"/>
+  <text x="462" y="686" text-anchor="middle" fill="#155724" font-family="Arial,sans-serif" font-size="10" font-weight="bold">SUFFICIENT</text>
+  <text x="600" y="685" fill="#888" font-family="Arial,sans-serif" font-size="11">&gt;4.5</text>
+
+  <!-- Manganese -->
+  <line x1="55" y1="700" x2="745" y2="700" stroke="#eee" stroke-width="1"/>
+  <text x="80" y="720" fill="#444" font-family="Arial,sans-serif" font-size="12">Manganese (Mn)</text>
+  <text x="250" y="720" fill="#111" font-family="Arial,sans-serif" font-size="13" font-weight="bold">3.2</text>
+  <rect x="420" y="707" width="85" height="20" rx="10" fill="#D4EDDA"/>
+  <text x="462" y="721" text-anchor="middle" fill="#155724" font-family="Arial,sans-serif" font-size="10" font-weight="bold">SUFFICIENT</text>
+  <text x="600" y="720" fill="#888" font-family="Arial,sans-serif" font-size="11">&gt;2.0</text>
+
+  <!-- Copper -->
+  <line x1="55" y1="735" x2="745" y2="735" stroke="#eee" stroke-width="1"/>
+  <text x="80" y="755" fill="#444" font-family="Arial,sans-serif" font-size="12">Copper (Cu)</text>
+  <text x="250" y="755" fill="#111" font-family="Arial,sans-serif" font-size="13" font-weight="bold">1.1</text>
+  <rect x="420" y="742" width="85" height="20" rx="10" fill="#D4EDDA"/>
+  <text x="462" y="756" text-anchor="middle" fill="#155724" font-family="Arial,sans-serif" font-size="10" font-weight="bold">SUFFICIENT</text>
+  <text x="600" y="755" fill="#888" font-family="Arial,sans-serif" font-size="11">&gt;0.2</text>
+
+  <!-- Sulphur -->
+  <line x1="55" y1="770" x2="745" y2="770" stroke="#eee" stroke-width="1"/>
+
+  <!-- Recommendations Section -->
+  <rect x="40" y="795" width="720" height="185" rx="6" fill="white" stroke="#ddd" stroke-width="1"/>
+  <rect x="40" y="795" width="720" height="32" rx="6" fill="#f0f0ff"/>
+  <text x="60" y="816" fill="#4a3d8f" font-family="Arial,sans-serif" font-size="13" font-weight="bold">RECOMMENDATIONS FOR RABI SEASON 2025-26</text>
+
+  <!-- Recommendation items -->
+  <circle cx="75" cy="848" r="6" fill="#1a5e1f"/>
+  <text x="75" y="852" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="9" font-weight="bold">1</text>
+  <text x="95" y="852" fill="#333" font-family="Arial,sans-serif" font-size="12">Apply Urea @ 120 kg/ha in two split doses to correct Nitrogen deficiency.</text>
+
+  <circle cx="75" cy="878" r="6" fill="#1a5e1f"/>
+  <text x="75" y="882" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="9" font-weight="bold">2</text>
+  <text x="95" y="882" fill="#333" font-family="Arial,sans-serif" font-size="12">Apply ZnSO4 @ 25 kg/ha to address Zinc deficiency before sowing.</text>
+
+  <circle cx="75" cy="908" r="6" fill="#1a5e1f"/>
+  <text x="75" y="912" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="9" font-weight="bold">3</text>
+  <text x="95" y="912" fill="#333" font-family="Arial,sans-serif" font-size="12">Add Farm Yard Manure (FYM) @ 5 tonnes/ha to improve Organic Carbon.</text>
+
+  <circle cx="75" cy="938" r="6" fill="#1a5e1f"/>
+  <text x="75" y="942" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="9" font-weight="bold">4</text>
+  <text x="95" y="942" fill="#333" font-family="Arial,sans-serif" font-size="12">Suitable crops: Wheat, Gram (Chana), Mustard, Lentil (Masoor).</text>
+
+  <circle cx="75" cy="968" r="6" fill="#c85a17"/>
+  <text x="75" y="972" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="9" font-weight="bold">!</text>
+  <text x="95" y="972" fill="#333" font-family="Arial,sans-serif" font-size="12">Potassium is high — avoid additional K fertilizers this season.</text>
+
+  <!-- Footer -->
+  <rect x="30" y="1000" width="740" height="60" rx="8" fill="url(#footerGrad)"/>
+  <text x="400" y="1025" text-anchor="middle" fill="white" font-family="Arial,sans-serif" font-size="11" font-weight="bold">Tested at: Krishi Vigyan Kendra (KVK), Sehore, Madhya Pradesh</text>
+  <text x="400" y="1045" text-anchor="middle" fill="#ffe0c0" font-family="Arial,sans-serif" font-size="10">Lab Ref: KVK/SHR/2026/00472 | Tested by: Dr. Anita Sharma, Soil Scientist | Valid until: Jan 2028</text>
+
+  <!-- Stamp -->
+  <circle cx="680" cy="930" r="30" fill="none" stroke="#1a5e1f" stroke-width="2" opacity="0.3"/>
+  <text x="680" y="925" text-anchor="middle" fill="#1a5e1f" font-family="serif" font-size="8" font-weight="bold" opacity="0.4">VERIFIED</text>
+  <text x="680" y="938" text-anchor="middle" fill="#1a5e1f" font-family="serif" font-size="7" opacity="0.4">KVK SEHORE</text>
+</svg>
