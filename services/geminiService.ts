@@ -18,9 +18,26 @@ const ai = new Proxy({} as GoogleGenAI, {
   get: (_t, prop) => (getAI() as any)[prop],
 });
 
+const FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.0-flash'];
+
+async function generateWithFallback(params: { contents: any; config?: any }): Promise<{ text: string }> {
+  let lastError: unknown;
+  for (const model of FALLBACK_MODELS) {
+    try {
+      const response = await ai.models.generateContent({ model, ...params });
+      return { text: response.text || '' };
+    } catch (err: any) {
+      lastError = err;
+      if (err?.status === 'NOT_FOUND') continue;
+      if (err?.message?.includes('503') || err?.message?.includes('UNAVAILABLE') || err?.message?.includes('429') || err?.message?.includes('RESOURCE_EXHAUSTED')) continue;
+      throw err;
+    }
+  }
+  throw lastError;
+}
+
 export const resolveLocation = async (query: string): Promise<Coordinates> => {
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+  const response = await generateWithFallback({
     contents: `Resolve the following place name to its approximate Latitude and Longitude: "${query}". Respond strictly in JSON format with keys: lat, lng.`,
     config: {
       responseMimeType: "application/json",
@@ -39,21 +56,19 @@ export const resolveLocation = async (query: string): Promise<Coordinates> => {
 };
 
 export const getTerrainAnalysis = async (coords: Coordinates): Promise<DroneAnalysisResult> => {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: `Perform a comprehensive terrain and irrigation analysis for the coordinates: Latitude ${coords.lat}, Longitude ${coords.lng}. 
-    
+  const prompt = `Perform a comprehensive terrain and irrigation analysis for the coordinates: Latitude ${coords.lat}, Longitude ${coords.lng}.
+
     1. Find the nearest irrigation sources (canals, rivers, lakes, reservoirs, ponds, check dams, borewells, or major water tanks).
     2. Analyze the typical topography of this specific region (slope, elevation, drainage patterns).
     3. Estimate current soil moisture levels based on seasonal patterns and recent regional weather for these coordinates.
     4. Provide a Vegetation Index (NDVI) estimate for typical farmland at this location.
-    
-    If you find specific locations using the maps tool, list them. 
+
+    If you find specific locations using the maps tool, list them.
     If NO specific locations are found, provide a "Regional Water Strategy" based on the typical geography of this area.
-    
-    For each source (real or suggested), estimate the setup/usage cost for a 5-acre farm in Indian Rupees (INR). 
+
+    For each source (real or suggested), estimate the setup/usage cost for a 5-acre farm in Indian Rupees (INR).
     Provide a summary of water availability and a recommendation for the best source.
-    
+
     Respond strictly in JSON format with the following structure:
     {
       "sources": [{"name": "...", "type": "...", "distance": "...", "mapUrl": "...", "costEstimate": "..."}],
@@ -62,19 +77,22 @@ export const getTerrainAnalysis = async (coords: Coordinates): Promise<DroneAnal
       "soilMoisture": {"level": "...", "percentage": 0-100, "status": "Optimal/Low/High"},
       "topography": {"slope": "...", "elevation": "...", "drainage": "..."},
       "vegetationIndex": {"score": 0.0-1.0, "health": "..."}
-    }`,
-    config: {
-      tools: [{ googleMaps: {} }],
-      toolConfig: {
-        retrievalConfig: {
-          latLng: {
-            latitude: coords.lat,
-            longitude: coords.lng
-          }
-        }
-      }
-    },
-  });
+    }`;
+
+  let response: any;
+  try {
+    response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        tools: [{ googleMaps: {} }],
+        toolConfig: { retrievalConfig: { latLng: { latitude: coords.lat, longitude: coords.lng } } }
+      },
+    });
+  } catch {
+    // Fallback without maps tool
+    response = await generateWithFallback({ contents: prompt });
+  }
 
   const text = response.text || "";
   let data: any = {};
@@ -584,8 +602,7 @@ Analyze the provided image carefully:
 Respond strictly as JSON.`
   };
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+  const response = await generateWithFallback({
     contents: { parts: [imagePart, textPart] },
     config: {
       responseMimeType: "application/json",
@@ -656,8 +673,7 @@ export const getCropCalendar = async (
   durationDays: string,
   state: string
 ): Promise<CropCalendarWeek[]> => {
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+  const response = await generateWithFallback({
     contents: `Generate a detailed week-by-week crop cultivation calendar for ${cropName} in ${state}, India.
 The crop duration is approximately ${durationDays}.
 Divide the full growing cycle into weekly stages. For each week include:
@@ -696,8 +712,7 @@ export const getGovernmentSchemes = async (
   crop: string,
   landSizeAcres: number
 ): Promise<GovernmentScheme[]> => {
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+  const response = await generateWithFallback({
     contents: `List all applicable Indian government agricultural schemes for a farmer with these details:
 - State: ${state}
 - Primary Crop: ${crop}
@@ -737,8 +752,7 @@ export const getCropRotationPlan = async (
   soilType: string,
   state: string
 ): Promise<CropRotationPlan> => {
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
+  const response = await generateWithFallback({
     contents: `You are an expert Indian agronomist. A farmer in ${state || 'India'} has just harvested ${currentCrop} on ${soilType || 'mixed'} soil.
 
 Design an optimal 3-year crop rotation cycle (4-5 steps) that:
