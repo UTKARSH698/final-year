@@ -107,7 +107,7 @@ function App() {
   }, [view]);
 
   // Protected views require login
-  const PROTECTED_VIEWS: ViewName[] = ['crop-guide', 'shop', 'disease-detect', 'agri-drone', 'history', 'expense', 'admin'];
+  const PROTECTED_VIEWS: ViewName[] = ['crop-guide', 'shop', 'market', 'disease-detect', 'agri-drone', 'history', 'schemes', 'expense', 'admin'];
 
   // Navigate with scroll-to-top + auth guard
   const navigateTo = useCallback((v: string) => {
