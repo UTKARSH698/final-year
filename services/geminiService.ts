@@ -21,11 +21,25 @@ const ai = new Proxy({} as GoogleGenAI, {
 const FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.0-flash'];
 
 async function generateWithFallback(params: { contents: any; config?: any }): Promise<{ text: string }> {
+  // Detect vision call (has inlineData parts) — strip schema config as not all models support it with images
+  const isVision = (() => {
+    const c = params.contents;
+    const parts = Array.isArray(c) ? c : c?.parts;
+    return Array.isArray(parts) && parts.some((p: any) => p?.inlineData);
+  })();
+
   let lastError: unknown;
   for (const model of FALLBACK_MODELS) {
     try {
-      const response = await ai.models.generateContent({ model, ...params });
-      return { text: response.text || '' };
+      const config = isVision ? undefined : params.config;
+      const response = await ai.models.generateContent({ model, contents: params.contents, ...(config ? { config } : {}) });
+      const text = response.text || '';
+      // For vision calls, extract JSON from response text
+      if (isVision && text) {
+        const match = text.match(/\{[\s\S]*\}/);
+        return { text: match ? match[0] : text };
+      }
+      return { text };
     } catch (err: any) {
       lastError = err;
       if (err?.status === 'NOT_FOUND') continue;
