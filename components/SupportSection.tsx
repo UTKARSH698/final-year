@@ -3,37 +3,37 @@ import React from 'react';
 import { Linkedin, Github, Heart } from 'lucide-react';
 
 const TEAM = [
-  { 
-    name: 'Hiren Mahida', 
-    role: 'Data Collection Lead', 
-    description: 'Focused on cleaning and preprocessing diverse agricultural datasets to ensure data quality and relevance.',
-    gradient: 'from-emerald-400 to-green-600',
-    initials: 'HM',
-    linkedin: 'https://www.linkedin.com/in/hiren-mahida-ab59a2333/',
-    github: 'https://share.google/a3eBlpK7dc9oajJYH'
-  },
-  { 
-    name: 'Nikhil Sharma', 
-    role: 'Model Training Lead', 
-    description: 'Involved rigorous algorithm testing, selection, and fine-tuning to develop accurate and robust predictive models.',
-    gradient: 'from-blue-400 to-cyan-600',
-    initials: 'NS',
-    linkedin: 'https://www.linkedin.com/in/nikhil-sh10/',
-    github: 'https://github.com/Nikhilsh10'
-  },
-  { 
-    name: 'Utkarsh Batham', 
-    role: 'UI & Design Lead', 
-    description: 'Dedicated to the development of an intuitive and user-friendly application for easy interaction.',
+  {
+    name: 'Utkarsh Batham',
+    role: 'UI/UX & Backend Lead',
+    description: 'Built Crop Recommendation, AgriDrone V2, Crop Encyclopedia, Admin Dashboard, Auth System, and PostgreSQL integration. Designed the entire UI/UX.',
     gradient: 'from-orange-400 to-pink-600',
     initials: 'UB',
     linkedin: 'https://www.linkedin.com/in/utkarsh-batham-531913247?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app',
     github: 'https://github.com/UTKARSH698'
   },
-  { 
-    name: 'Harsh Kumar', 
-    role: 'Deployment Lead', 
-    description: 'Encompassed cloud hosting setup and comprehensive final documentation for project handover and scalability.',
+  {
+    name: 'Nikhil Sharma',
+    role: 'AI & Intelligence Lead',
+    description: 'Developed Disease Detector, Market Forecasting, Digital Twin, Gemini AI Integration, and Crop Calendar — powering the platform\'s AI core.',
+    gradient: 'from-blue-400 to-cyan-600',
+    initials: 'NS',
+    linkedin: 'https://www.linkedin.com/in/nikhil-sh10/',
+    github: 'https://github.com/Nikhilsh10'
+  },
+  {
+    name: 'Hiren Mahida',
+    role: 'Features & Data Lead',
+    description: 'Built Scheme Finder, Expense Tracker, AgriStore, Mandi Ticker, and the Crop Database powering recommendations across the platform.',
+    gradient: 'from-emerald-400 to-green-600',
+    initials: 'HM',
+    linkedin: 'https://www.linkedin.com/in/hiren-mahida-ab59a2333/',
+    github: 'https://share.google/a3eBlpK7dc9oajJYH'
+  },
+  {
+    name: 'Harsh Kumar',
+    role: 'Infrastructure & DevOps Lead',
+    description: 'Implemented Weather Dashboard, AgriBot, Razorpay Payments, PWA support, and managed cloud deployment on Render.',
     gradient: 'from-purple-400 to-indigo-600',
     initials: 'HK',
     linkedin: 'https://www.linkedin.com/in/harsh-singh-42a78b274/',
