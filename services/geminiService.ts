@@ -1,5 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
+import Groq from "groq-sdk";
 import { Coordinates, PredictionResult, ChatMessage, DiseaseRisk, WeatherData, FertilizerPlan, MarketForecast, PricePoint, PredictionReason, DiseaseDetectionResult, DroneAnalysisResult, CropCalendarWeek, GovernmentScheme, CropRotationPlan, CropRotationStep } from '../types';
 import { MANDI_RATES } from '../constants';
 
@@ -22,6 +23,37 @@ const ai = new Proxy({} as GoogleGenAI, {
 });
 
 const FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.0-flash'];
+
+// Groq client for text-only tasks (faster + separate quota)
+let _groq: Groq | null = null;
+function getGroq(): Groq | null {
+  if (_groq) return _groq;
+  const key = process.env.GROQ_API_KEY;
+  if (!key) return null;
+  _groq = new Groq({ apiKey: key, dangerouslyAllowBrowser: true });
+  return _groq;
+}
+
+async function groqGenerate(prompt: string): Promise<string> {
+  const groq = getGroq();
+  if (!groq) throw new Error('No Groq key');
+  const res = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7,
+  });
+  return res.choices[0]?.message?.content || '';
+}
+
+// Try Groq first for text tasks, fall back to Gemini
+async function generateText(prompt: string, config?: any): Promise<string> {
+  try {
+    const text = await groqGenerate(prompt);
+    if (text) return text;
+  } catch { /* fall through to Gemini */ }
+  const res = await generateWithFallback({ contents: prompt, config });
+  return res.text;
+}
 
 async function generateWithFallback(params: { contents: any; config?: any }): Promise<{ text: string }> {
   // Detect vision call (has inlineData parts) — strip schema config as not all models support it with images
@@ -58,22 +90,9 @@ async function generateWithFallback(params: { contents: any; config?: any }): Pr
 }
 
 export const resolveLocation = async (query: string): Promise<Coordinates> => {
-  const response = await generateWithFallback({
-    contents: `Resolve the following place name to its approximate Latitude and Longitude: "${query}". Respond strictly in JSON format with keys: lat, lng.`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          lat: { type: Type.NUMBER },
-          lng: { type: Type.NUMBER }
-        },
-        required: ["lat", "lng"]
-      }
-    }
-  });
-
-  return JSON.parse(response.text || '{"lat": 20.5937, "lng": 78.9629}') as Coordinates;
+  const text = await generateText(`Resolve the following place name to its approximate Latitude and Longitude: "${query}". Respond strictly in JSON format with keys: lat, lng.`);
+  const match = text.match(/\{[\s\S]*\}/);
+  return JSON.parse(match ? match[0] : '{"lat": 20.5937, "lng": 78.9629}') as Coordinates;
 };
 
 export const getTerrainAnalysis = async (coords: Coordinates): Promise<DroneAnalysisResult> => {
@@ -694,8 +713,7 @@ export const getCropCalendar = async (
   durationDays: string,
   state: string
 ): Promise<CropCalendarWeek[]> => {
-  const response = await generateWithFallback({
-    contents: `Generate a detailed week-by-week crop cultivation calendar for ${cropName} in ${state}, India.
+  const text = await generateText(`Generate a detailed week-by-week crop cultivation calendar for ${cropName} in ${state}, India.
 The crop duration is approximately ${durationDays}.
 Divide the full growing cycle into weekly stages. For each week include:
 - What activities the farmer should do
@@ -705,26 +723,9 @@ Divide the full growing cycle into weekly stages. For each week include:
 Respond strictly as a JSON array of objects. Each object must have:
 { "week": number, "label": string (e.g. "Soil Prep & Sowing"), "activities": string[], "inputs": string, "watchOut": string }
 
-Generate stages covering the full cycle: land prep → sowing → vegetative → flowering → maturation → harvest. Group weeks into meaningful stages.`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            week: { type: Type.NUMBER },
-            label: { type: Type.STRING },
-            activities: { type: Type.ARRAY, items: { type: Type.STRING } },
-            inputs: { type: Type.STRING },
-            watchOut: { type: Type.STRING },
-          },
-          required: ["week", "label", "activities", "inputs", "watchOut"]
-        }
-      }
-    }
-  });
-  return JSON.parse(response.text || '[]') as CropCalendarWeek[];
+Generate stages covering the full cycle: land prep → sowing → vegetative → flowering → maturation → harvest. Group weeks into meaningful stages.`);
+  const match = text.match(/\[[\s\S]*\]/);
+  return JSON.parse(match ? match[0] : '[]') as CropCalendarWeek[];
 };
 
 // ─── Government Schemes Finder ────────────────────────────────────────────────
@@ -733,8 +734,7 @@ export const getGovernmentSchemes = async (
   crop: string,
   landSizeAcres: number
 ): Promise<GovernmentScheme[]> => {
-  const response = await generateWithFallback({
-    contents: `List all applicable Indian government agricultural schemes for a farmer with these details:
+  const text = await generateText(`List all applicable Indian government agricultural schemes for a farmer with these details:
 - State: ${state}
 - Primary Crop: ${crop}
 - Land Size: ${landSizeAcres} acres
@@ -744,27 +744,9 @@ Include: central government schemes (PM-KISAN, PMFBY, PM Fasal Bima, Kisan Credi
 For each scheme provide practical, actionable information. Respond strictly as a JSON array:
 [{ "name": string, "ministry": string, "benefit": string, "eligibility": string, "howToApply": string, "amount": string }]
 
-Only include schemes genuinely applicable to the given crop and land size. Include 6-10 schemes.`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            name: { type: Type.STRING },
-            ministry: { type: Type.STRING },
-            benefit: { type: Type.STRING },
-            eligibility: { type: Type.STRING },
-            howToApply: { type: Type.STRING },
-            amount: { type: Type.STRING },
-          },
-          required: ["name", "ministry", "benefit", "eligibility", "howToApply", "amount"]
-        }
-      }
-    }
-  });
-  return JSON.parse(response.text || '[]') as GovernmentScheme[];
+Only include schemes genuinely applicable to the given crop and land size. Include 6-10 schemes.`);
+  const match = text.match(/\[[\s\S]*\]/);
+  return JSON.parse(match ? match[0] : '[]') as GovernmentScheme[];
 };
 
 // ─── Smart Crop Rotation Recommender ─────────────────────────────────────────
@@ -773,8 +755,7 @@ export const getCropRotationPlan = async (
   soilType: string,
   state: string
 ): Promise<CropRotationPlan> => {
-  const response = await generateWithFallback({
-    contents: `You are an expert Indian agronomist. A farmer in ${state || 'India'} has just harvested ${currentCrop} on ${soilType || 'mixed'} soil.
+  const text = await generateText(`You are an expert Indian agronomist. A farmer in ${state || 'India'} has just harvested ${currentCrop} on ${soilType || 'mixed'} soil.
 
 Design an optimal 3-year crop rotation cycle (4-5 steps) that:
 1. Replenishes soil nutrients depleted by ${currentCrop}
@@ -796,35 +777,7 @@ Also provide:
 - totalCycleMonths: Total rotation cycle length
 - overallBenefit: One-line summary of the rotation's combined impact on soil health
 
-Return strictly as JSON: { "currentCrop": string, "totalCycleMonths": number, "steps": [...], "overallBenefit": string }`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          currentCrop: { type: Type.STRING },
-          totalCycleMonths: { type: Type.NUMBER },
-          steps: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                season: { type: Type.STRING },
-                cropName: { type: Type.STRING },
-                cropHindi: { type: Type.STRING },
-                reason: { type: Type.STRING },
-                soilBenefit: { type: Type.STRING },
-                duration: { type: Type.STRING },
-                icon: { type: Type.STRING },
-              },
-              required: ["season", "cropName", "cropHindi", "reason", "soilBenefit", "duration", "icon"]
-            }
-          },
-          overallBenefit: { type: Type.STRING },
-        },
-        required: ["currentCrop", "totalCycleMonths", "steps", "overallBenefit"]
-      }
-    }
-  });
-  return JSON.parse(response.text || '{}') as CropRotationPlan;
+Return strictly as JSON: { "currentCrop": string, "totalCycleMonths": number, "steps": [...], "overallBenefit": string }`);
+  const match = text.match(/\{[\s\S]*\}/);
+  return JSON.parse(match ? match[0] : '{}') as CropRotationPlan;
 };
