@@ -259,13 +259,20 @@ export const MarketAnalysis: React.FC<MarketAnalysisProps> = ({ onBack }) => {
   const [showCalc, setShowCalc] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
 
-  const fetchForecast = async (crop: string) => {
+  const [fetchError, setFetchError] = useState(false);
+
+  const fetchForecast = async (crop: string, attempt = 1) => {
     setLoading(true);
+    setFetchError(false);
     try {
       const data = await getMarketForecast(crop);
       setForecast(data);
     } catch (e) {
-      console.error(e);
+      if (attempt < 3) {
+        setTimeout(() => fetchForecast(crop, attempt + 1), 3000 * attempt);
+      } else {
+        setFetchError(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -421,7 +428,14 @@ export const MarketAnalysis: React.FC<MarketAnalysisProps> = ({ onBack }) => {
         {/* Live Mandi Ticker */}
         <MandiTicker currentCrop={selectedCrop} />
 
-        {loading ? (
+        {fetchError ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+            <p className="text-gray-500 dark:text-gray-400 text-lg">Failed to load market data. Server may be waking up.</p>
+            <button onClick={() => fetchForecast(selectedCrop)} className="px-6 py-3 bg-gold text-black font-bold rounded-xl hover:bg-gold/80 transition-colors">
+              Retry
+            </button>
+          </div>
+        ) : loading ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-pulse" aria-label="Loading market forecast">
             <div className="lg:col-span-8 space-y-8">
               <div className="bg-white dark:bg-charcoal border border-black/5 dark:border-white/10 rounded-[2rem] p-10">
