@@ -18,19 +18,26 @@ interface DiseaseDetectorProps {
 }
 
 /* ── Rasterize an SVG path to a base64 JPEG via Canvas ── */
-function rasterizeSvg(svgUrl: string): Promise<string> {
+async function rasterizeSvg(svgUrl: string): Promise<string> {
+  // Fetch SVG as text and convert to blob URL to avoid canvas taint
+  const resp = await fetch(svgUrl);
+  const svgText = await resp.text();
+  const blob = new Blob([svgText], { type: 'image/svg+xml' });
+  const blobUrl = URL.createObjectURL(blob);
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
     img.onload = () => {
       const c = document.createElement('canvas');
-      c.width = 400; c.height = 400;
+      c.width = 600; c.height = 600;
       const ctx = c.getContext('2d')!;
-      ctx.drawImage(img, 0, 0, 400, 400);
-      resolve(c.toDataURL('image/jpeg', 0.85));
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 600, 600);
+      ctx.drawImage(img, 0, 0, 600, 600);
+      URL.revokeObjectURL(blobUrl);
+      resolve(c.toDataURL('image/jpeg', 0.9));
     };
-    img.onerror = () => reject(new Error('Failed to load sample image'));
-    img.src = svgUrl;
+    img.onerror = () => { URL.revokeObjectURL(blobUrl); reject(new Error('Failed to load sample image')); };
+    img.src = blobUrl;
   });
 }
 
