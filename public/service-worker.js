@@ -47,6 +47,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip Vite dev server assets — these use hash-versioned URLs and must
+  // never be served from cache (stale hash = duplicate React instance crash)
+  if (
+    url.pathname.startsWith('/node_modules/') ||
+    url.pathname.startsWith('/@') ||
+    url.pathname.startsWith('/__vite') ||
+    url.searchParams.has('v') ||
+    url.searchParams.has('t')
+  ) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request)

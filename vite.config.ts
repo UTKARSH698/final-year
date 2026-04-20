@@ -31,6 +31,10 @@ export default defineConfig(({ mode }) => {
         'process.env.GEMINI_API_KEY_3': JSON.stringify(fileEnv.VITE_GEMINI_API_KEY_3 || env.VITE_GEMINI_API_KEY_3 || ''),
         'process.env.GROQ_API_KEY': JSON.stringify(fileEnv.VITE_GROQ_API_KEY || env.VITE_GROQ_API_KEY || ''),
       },
+      optimizeDeps: {
+        include: ['react', 'react-dom', 'react-dom/client'],
+        exclude: ['groq-sdk'],
+      },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
