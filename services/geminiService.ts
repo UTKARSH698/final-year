@@ -3,19 +3,22 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Coordinates, PredictionResult, ChatMessage, DiseaseRisk, WeatherData, FertilizerPlan, MarketForecast, PricePoint, PredictionReason, DiseaseDetectionResult, DroneAnalysisResult, CropCalendarWeek, GovernmentScheme, CropRotationPlan, CropRotationStep } from '../types';
 import { MANDI_RATES } from '../constants';
 
-// Lazy-initialise so a missing key doesn't crash the whole app at import time
-let _ai: GoogleGenAI | null = null;
-function getAI(): GoogleGenAI {
-  if (!_ai) {
-    const key = process.env.API_KEY;
-    if (!key) throw new Error('Gemini API key is not set. Add VITE_GEMINI_API_KEY to your .env file.');
-    _ai = new GoogleGenAI({ apiKey: key });
-  }
-  return _ai;
+// API key rotation — add VITE_GEMINI_API_KEY_2, _3 in .env for extra quota
+const API_KEYS = [
+  process.env.API_KEY,
+  process.env.GEMINI_API_KEY_2,
+  process.env.GEMINI_API_KEY_3,
+].filter(Boolean) as string[];
+
+let _keyIndex = 0;
+function getAI(keyIdx = 0): GoogleGenAI {
+  const key = API_KEYS[keyIdx % API_KEYS.length];
+  if (!key) throw new Error('Gemini API key is not set. Add VITE_GEMINI_API_KEY to your .env file.');
+  return new GoogleGenAI({ apiKey: key });
 }
-// Keep `ai` as a proxy so existing code below works unchanged
+// Keep `ai` as a proxy using the current key
 const ai = new Proxy({} as GoogleGenAI, {
-  get: (_t, prop) => (getAI() as any)[prop],
+  get: (_t, prop) => (getAI(_keyIndex) as any)[prop],
 });
 
 const FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.0-flash'];
@@ -42,8 +45,12 @@ async function generateWithFallback(params: { contents: any; config?: any }): Pr
       return { text };
     } catch (err: any) {
       lastError = err;
-      if (err?.status === 'NOT_FOUND') continue;
-      if (err?.message?.includes('503') || err?.message?.includes('UNAVAILABLE') || err?.message?.includes('429') || err?.message?.includes('RESOURCE_EXHAUSTED')) continue;
+      const isQuota = err?.message?.includes('429') || err?.message?.includes('RESOURCE_EXHAUSTED');
+      const isOverload = err?.message?.includes('503') || err?.message?.includes('UNAVAILABLE');
+      if (isQuota && API_KEYS.length > 1) {
+        _keyIndex = (_keyIndex + 1) % API_KEYS.length; // rotate to next key
+      }
+      if (err?.status === 'NOT_FOUND' || isOverload || isQuota) continue;
       throw err;
     }
   }
