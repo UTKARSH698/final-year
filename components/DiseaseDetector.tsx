@@ -71,8 +71,12 @@ const DISEASE_TYPE_META: Record<string, { icon: React.FC<any>; color: string; bg
 };
 
 /* ── Animated Severity Ring ──────────────────── */
-const SeverityRing: React.FC<{ severity: 'Low' | 'Moderate' | 'High' }> = ({ severity }) => {
-  const config = SEVERITY_CONFIG[severity];
+const SeverityRing: React.FC<{ severity: string }> = ({ severity }) => {
+  // Normalize severity string — Gemini may return lowercase or uppercase
+  const normalized = severity
+    ? (severity.charAt(0).toUpperCase() + severity.slice(1).toLowerCase()) as 'Low' | 'Moderate' | 'High'
+    : 'Moderate';
+  const config = SEVERITY_CONFIG[normalized] || SEVERITY_CONFIG['Moderate'];
   const radius = 38;
   const circumference = 2 * Math.PI * radius;
   const progress = (config.pct / 100) * circumference;
