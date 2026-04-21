@@ -64,27 +64,38 @@ async function generateWithFallback(params: { contents: any; config?: any }): Pr
   })();
 
   let lastError: unknown;
+
+  // Outer loop: models. Inner loop: keys.
+  // For each model we try ALL keys before giving up and moving to the next model.
+  // This gives true 3× quota — key 1 exhausted? key 2 picks up instantly, same model.
   for (const model of FALLBACK_MODELS) {
-    try {
-      const config = isVision ? undefined : params.config;
-      const response = await ai.models.generateContent({ model, contents: params.contents, ...(config ? { config } : {}) });
-      const text = response.text || '';
-      // For vision calls, extract JSON from response text
-      if (isVision && text) {
-        const match = text.match(/\{[\s\S]*\}/);
-        return { text: match ? match[0] : text };
+    for (let ki = 0; ki < API_KEYS.length; ki++) {
+      const keyIdx = (_keyIndex + ki) % API_KEYS.length;
+      try {
+        const aiInstance = getAI(keyIdx);
+        const config = isVision ? undefined : params.config;
+        const response = await aiInstance.models.generateContent({
+          model,
+          contents: params.contents,
+          ...(config ? { config } : {}),
+        });
+        _keyIndex = keyIdx; // remember the working key for next call
+        const text = response.text || '';
+        if (isVision && text) {
+          const match = text.match(/\{[\s\S]*\}/);
+          return { text: match ? match[0] : text };
+        }
+        return { text };
+      } catch (err: any) {
+        lastError = err;
+        const isQuota = err?.message?.includes('429') || err?.message?.includes('RESOURCE_EXHAUSTED');
+        const isOverload = err?.message?.includes('503') || err?.message?.includes('UNAVAILABLE');
+        if (isQuota || isOverload) continue; // try next key for same model
+        if (err?.status === 'NOT_FOUND') break;  // model doesn't exist, skip to next model
+        throw err; // unrecoverable error — stop immediately
       }
-      return { text };
-    } catch (err: any) {
-      lastError = err;
-      const isQuota = err?.message?.includes('429') || err?.message?.includes('RESOURCE_EXHAUSTED');
-      const isOverload = err?.message?.includes('503') || err?.message?.includes('UNAVAILABLE');
-      if (isQuota && API_KEYS.length > 1) {
-        _keyIndex = (_keyIndex + 1) % API_KEYS.length; // rotate to next key
-      }
-      if (err?.status === 'NOT_FOUND' || isOverload || isQuota) continue;
-      throw err;
     }
+    // All keys exhausted for this model → try next model from current key
   }
   throw lastError;
 }
