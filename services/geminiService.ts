@@ -802,7 +802,20 @@ export const getCropCalendar = async (
   durationDays: string,
   state: string
 ): Promise<CropCalendarWeek[]> => {
-  const text = await generateText(`Generate a detailed week-by-week crop cultivation calendar for ${cropName} in ${state}, India.
+  const DEMO_CALENDAR: CropCalendarWeek[] = [
+    { week: 1, label: 'Land Preparation', activities: ['Deep ploughing to 20–25 cm', 'Apply FYM / compost @ 5 t/acre', 'Level field for uniform moisture'], inputs: 'FYM 5 t/acre, Basal DAP 50 kg/acre', watchOut: 'Soil moisture — avoid sowing in waterlogged conditions' },
+    { week: 2, label: 'Sowing', activities: [`Sow ${cropName} seeds at recommended spacing`, 'Treat seeds with Rhizobium culture + Thiram', 'Mark rows with rope for uniform spacing'], inputs: 'Seed @ 30–40 kg/acre, Rhizobium culture, Thiram 2 g/kg seed', watchOut: 'Soil temperature should be 20–25°C for good germination' },
+    { week: 3, label: 'Germination & Establishment', activities: ['Check germination (should be >80%)', 'Fill gaps with fresh seeds if needed', 'First light irrigation if soil is dry'], inputs: 'Light irrigation if required', watchOut: 'Damping-off disease in wet conditions — avoid overwatering' },
+    { week: 4, label: 'Early Vegetative', activities: ['First weeding (hand or khurpi)', 'Thinning to maintain plant population', 'Apply Urea top dressing if growth is pale'], inputs: 'Urea 15 kg/acre (if needed)', watchOut: 'Aphids and thrips on young leaves — spray Imidacloprid 0.5 ml/L' },
+    { week: 6, label: 'Vegetative Growth', activities: ['Second weeding and earthing up', 'Monitor for pest activity', 'Irrigation at branching stage if dry'], inputs: 'MOP 20 kg/acre, irrigation if rainfall < 30 mm', watchOut: 'Pod borer (Helicoverpa) — install pheromone traps @ 5/acre' },
+    { week: 8, label: 'Branching & Bud Initiation', activities: ['Foliar spray of micronutrients', 'Scout for disease symptoms weekly', 'Stake tall varieties if needed'], inputs: 'Boron 0.5 g/L + Zinc sulphate 0.5 g/L foliar spray', watchOut: 'Powdery mildew in cool humid weather — spray Sulphur 3 g/L' },
+    { week: 10, label: 'Flowering', activities: ['Critical irrigation at flowering if dry', 'Avoid spray of insecticides during peak flowering', 'Remove diseased plants'], inputs: 'Irrigation (flowering is very moisture-sensitive)', watchOut: 'Pod borer — spray Chlorpyriphos 2 ml/L if infestation > ETL' },
+    { week: 12, label: 'Pod Filling', activities: ['Irrigation at pod fill stage', 'Final pest scouting', 'Note field maturity uniformity'], inputs: 'Light irrigation, no fertilizer at this stage', watchOut: 'Leaf curl virus, stem fly — use yellow sticky traps' },
+    { week: 16, label: 'Maturation & Harvest', activities: ['Stop irrigation 10–15 days before harvest', 'Harvest when 80% pods turn brown', 'Thresh and dry to <10% moisture'], inputs: 'None — only drying after harvest', watchOut: 'Grain discolouration from late rains — harvest promptly' },
+  ];
+
+  try {
+    const text = await generateText(`Generate a detailed week-by-week crop cultivation calendar for ${cropName} in ${state}, India.
 The crop duration is approximately ${durationDays}.
 Divide the full growing cycle into weekly stages. For each week include:
 - What activities the farmer should do
@@ -813,8 +826,12 @@ Respond strictly as a JSON array of objects. Each object must have:
 { "week": number, "label": string (e.g. "Soil Prep & Sowing"), "activities": string[], "inputs": string, "watchOut": string }
 
 Generate stages covering the full cycle: land prep → sowing → vegetative → flowering → maturation → harvest. Group weeks into meaningful stages.`);
-  const match = text.match(/\[[\s\S]*\]/);
-  return JSON.parse(match ? match[0] : '[]') as CropCalendarWeek[];
+    const match = text.match(/\[[\s\S]*\]/);
+    const parsed = JSON.parse(match ? match[0] : '[]') as CropCalendarWeek[];
+    return parsed.length > 0 ? parsed : DEMO_CALENDAR;
+  } catch {
+    return DEMO_CALENDAR;
+  }
 };
 
 // ─── Government Schemes Finder ────────────────────────────────────────────────
