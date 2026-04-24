@@ -6,9 +6,9 @@ import { MANDI_RATES } from '../constants';
 
 // API key rotation — add VITE_GEMINI_API_KEY_2, _3 in .env for extra quota
 const API_KEYS = [
-  process.env.API_KEY,
-  process.env.GEMINI_API_KEY_2,
-  process.env.GEMINI_API_KEY_3,
+  (import.meta as any).env?.VITE_GEMINI_API_KEY,
+  (import.meta as any).env?.VITE_GEMINI_API_KEY_2,
+  (import.meta as any).env?.VITE_GEMINI_API_KEY_3,
 ].filter(Boolean) as string[];
 
 let _keyIndex = 0;
@@ -28,7 +28,7 @@ const FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-fla
 let _groq: Groq | null = null;
 function getGroq(): Groq | null {
   if (_groq) return _groq;
-  const key = process.env.GROQ_API_KEY;
+  const key = (import.meta as any).env?.VITE_GROQ_API_KEY;
   if (!key) return null;
   _groq = new Groq({ apiKey: key, dangerouslyAllowBrowser: true });
   return _groq;
