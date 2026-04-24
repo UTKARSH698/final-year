@@ -59,6 +59,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // index.html must always come from the network — it references hashed JS/CSS
+  // bundles, so a stale index.html causes the old code to load after deploys.
+  if (url.pathname === '/' || url.pathname === '/index.html') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request)) // offline fallback only
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request)
