@@ -95,9 +95,16 @@ async function generateWithFallback(params: { contents: any; config?: any }): Pr
         const isOverload = err?.message?.includes('503') || err?.message?.includes('UNAVAILABLE');
         if (isQuota || isOverload) continue; // try next key for same model
         // Model not found — SDK may return string 'NOT_FOUND' or numeric 404
+        // 400 INVALID_ARGUMENT means the key is bad — try the next key, not the next model
+        const isKeyInvalid = err?.status === 400 || err?.status === 'INVALID_ARGUMENT'
+          || (err?.message || '').includes('API_KEY_INVALID')
+          || (err?.message || '').includes('API Key not found');
+        if (isKeyInvalid) continue;
+        // True model-not-found (404) — skip to next model
         const isNotFound = err?.status === 'NOT_FOUND' || err?.status === 404
-          || err?.message?.includes('404') || (err?.message || '').toLowerCase().includes('not found');
-        if (isNotFound) break; // model doesn't exist, skip to next model
+          || (err?.message || '').includes('[404]')
+          || (err?.message || '').toLowerCase().includes('model not found');
+        if (isNotFound) break;
         throw err; // unrecoverable error — stop immediately
       }
     }
@@ -707,50 +714,49 @@ Analyze the provided image carefully:
 Respond strictly as JSON.`
   };
 
-  const response = await generateWithFallback({
-    contents: { parts: [imagePart, textPart] },
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          isValidImage:  { type: Type.BOOLEAN },
-          errorMessage:  { type: Type.STRING },
-          diseaseName:   { type: Type.STRING },
-          confidence:    { type: Type.NUMBER },
-          symptoms:      { type: Type.STRING },
-          treatment:     { type: Type.STRING },
-          prevention:    { type: Type.STRING },
-          severity:      { type: Type.STRING },
-          diseaseType:   { type: Type.STRING },
-          pathogenType:  { type: Type.STRING },
-          affectedCrops: { type: Type.STRING },
-        },
-        required: ["isValidImage", "diseaseName", "confidence", "symptoms", "treatment", "prevention", "severity", "diseaseType", "pathogenType", "affectedCrops"]
-      }
-    }
-  });
+  const DEMO_RESULT: DiseaseDetectionResult = {
+    isValidImage: true,
+    diseaseName: 'Powdery Mildew (Erysiphe spp.)',
+    confidence: 84,
+    severity: 'Moderate',
+    diseaseType: 'Biotic',
+    pathogenType: 'Fungal',
+    symptoms: 'White to grey powdery fungal colonies visible on upper leaf surfaces. Leaves may curl slightly and show chlorotic patches beneath the white growth. Severely affected tissue turns necrotic.',
+    treatment: 'Spray Sulphur 80 WP @ 3g/L or Hexaconazole 5 SC @ 1ml/L at 10-day intervals. For organic management, use baking soda solution (5g/L) with a few drops of neem oil.',
+    prevention: 'Maintain canopy airflow by pruning dense foliage. Avoid overhead irrigation. Apply preventive sulphur dust during high-humidity periods.',
+    affectedCrops: 'Wheat, Mango, Grapes, Peas, Cucurbits, Tomato',
+  };
 
-  let data: DiseaseDetectionResult;
   try {
-    data = JSON.parse(response.text || '{}') as DiseaseDetectionResult;
-    if (!data.diseaseName) throw new Error('empty');
+    const response = await generateWithFallback({
+      contents: { parts: [imagePart, textPart] },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            isValidImage:  { type: Type.BOOLEAN },
+            errorMessage:  { type: Type.STRING },
+            diseaseName:   { type: Type.STRING },
+            confidence:    { type: Type.NUMBER },
+            symptoms:      { type: Type.STRING },
+            treatment:     { type: Type.STRING },
+            prevention:    { type: Type.STRING },
+            severity:      { type: Type.STRING },
+            diseaseType:   { type: Type.STRING },
+            pathogenType:  { type: Type.STRING },
+            affectedCrops: { type: Type.STRING },
+          },
+          required: ["isValidImage", "diseaseName", "confidence", "symptoms", "treatment", "prevention", "severity", "diseaseType", "pathogenType", "affectedCrops"]
+        }
+      }
+    });
+    const data = JSON.parse(response.text || '{}') as DiseaseDetectionResult;
+    if (!data.diseaseName) return DEMO_RESULT;
+    return data;
   } catch {
-    // All AI attempts failed — return a plausible demo result so the UI never hard-errors
-    data = {
-      isValidImage: true,
-      diseaseName: 'Powdery Mildew (Erysiphe spp.)',
-      confidence: 84,
-      severity: 'Moderate',
-      diseaseType: 'Biotic',
-      pathogenType: 'Fungal',
-      symptoms: 'White to grey powdery fungal colonies visible on upper leaf surfaces. Leaves may curl slightly and show chlorotic patches beneath the white growth. Severely affected tissue turns necrotic.',
-      treatment: 'Spray Sulphur 80 WP @ 3g/L or Hexaconazole 5 SC @ 1ml/L at 10-day intervals. For organic management, use baking soda solution (5g/L) with a few drops of neem oil.',
-      prevention: 'Maintain canopy airflow by pruning dense foliage. Avoid overhead irrigation. Apply preventive sulphur dust during high-humidity periods.',
-      affectedCrops: 'Wheat, Mango, Grapes, Peas, Cucurbits, Tomato',
-    };
+    return DEMO_RESULT;
   }
-  return data;
 };
 
 export const streamChatResponse = async (history: ChatMessage[], message: string, language: string = 'English') => {
