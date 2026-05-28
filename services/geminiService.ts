@@ -763,10 +763,7 @@ export const streamChatResponse = async (history: ChatMessage[], message: string
   // Keep only the last 30 messages to avoid token bloat
   const trimmedHistory = history.slice(-30);
 
-  const chat = ai.chats.create({
-    model: 'gemini-2.5-flash',
-    config: {
-      systemInstruction: `You are **AgriAssistant**, the AI agronomist of AgriFuture Luxe — India's most advanced agricultural intelligence platform.
+  const systemInstruction = `You are **AgriAssistant**, the AI agronomist of AgriFuture Luxe — India's most advanced agricultural intelligence platform.
 
 **Language:** ${language}. Always respond in this language. If the user writes in Hindi/regional script, reply in the same script.
 
@@ -787,13 +784,46 @@ export const streamChatResponse = async (history: ChatMessage[], message: string
 - When recommending chemicals, always include: product name, concentration, dose per litre, and safety interval.
 - If a farmer asks about a government scheme, provide the official portal link or helpline number.
 - Never give financial investment advice. For market queries, frame as "market data suggests" not "you should invest".
-- Be warm, encouraging and respectful — address the user as a fellow professional.`,
-    },
-    history: trimmedHistory.map(h => ({ role: h.role, parts: [{ text: h.text }] }))
-  });
+- Be warm, encouraging and respectful — address the user as a fellow professional.`;
 
-  const result = await chat.sendMessageStream({ message });
-  return result;
+  // Try Gemini streaming first
+  try {
+    const chat = ai.chats.create({
+      model: 'gemini-2.5-flash',
+      config: { systemInstruction },
+      history: trimmedHistory.map(h => ({ role: h.role, parts: [{ text: h.text }] }))
+    });
+    const result = await chat.sendMessageStream({ message });
+    return result;
+  } catch (_geminiErr) {
+    // Gemini failed (quota/key issue) — fall back to Groq streaming
+    const groq = getGroq();
+    if (!groq) throw _geminiErr; // No Groq key either — rethrow original error
+
+    const groqMessages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+      { role: 'system', content: systemInstruction },
+      ...trimmedHistory.map(h => ({
+        role: (h.role === 'model' ? 'assistant' : 'user') as 'user' | 'assistant',
+        content: h.text,
+      })),
+      { role: 'user', content: message },
+    ];
+
+    const groqStream = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: groqMessages,
+      temperature: 0.7,
+      stream: true,
+    });
+
+    // Return an async iterable yielding { text } chunks — same shape as Gemini stream
+    return (async function* () {
+      for await (const chunk of groqStream) {
+        const text = chunk.choices[0]?.delta?.content || '';
+        if (text) yield { text };
+      }
+    })();
+  }
 };
 
 // ─── Crop Calendar ────────────────────────────────────────────────────────────
