@@ -118,6 +118,7 @@ function App() {
       setIsLoginOpen(true);
       return;
     } else {
+      setPrediction(null);
       setView(v as ViewName);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -282,115 +283,49 @@ function App() {
       
       <main id="main-content">
         <Suspense fallback={<PageLoader />}>
-        <AnimatePresence mode="wait">
+          {/* View Router — key forces remount on navigation; CSS animate-in handles the fade */}
           {view === 'crop-guide' ? (
-            <motion.div
-              key="crop-guide"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            >
+            <div key="crop-guide" className="animate-in fade-in duration-300">
               <CropGuide onBack={handleNavigateHome} />
-            </motion.div>
+            </div>
           ) : view === 'shop' ? (
-            <motion.div
-              key="shop"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.02 }}
-              transition={{ duration: 0.5, ease: "circOut" }}
-            >
+            <div key="shop" className="animate-in fade-in duration-300">
               <Shop theme={theme} onBack={handleNavigateHome} />
-            </motion.div>
+            </div>
           ) : view === 'market' ? (
-            <motion.div
-              key="market"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div key="market" className="animate-in fade-in duration-300">
               <MarketAnalysis onBack={handleNavigateHome} />
-            </motion.div>
+            </div>
           ) : view === 'disease-detect' ? (
-            <motion.div
-              key="disease-detect"
-              initial={{ opacity: 0, filter: 'blur(10px)' }}
-              animate={{ opacity: 1, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, filter: 'blur(10px)' }}
-              transition={{ duration: 0.6 }}
-            >
+            <div key="disease-detect" className="animate-in fade-in duration-300">
               <DiseaseDetector onBack={handleNavigateHome} />
-            </motion.div>
+            </div>
           ) : view === 'agri-drone' ? (
-            <motion.div
-              key="agri-drone"
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.7, ease: "anticipate" }}
-            >
+            <div key="agri-drone" className="animate-in fade-in duration-300">
               <AgriDrone onBack={handleNavigateHome} />
-            </motion.div>
+            </div>
           ) : view === 'history' ? (
-            <motion.div
-              key="history"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div key="history" className="animate-in fade-in duration-300">
               <History onBack={handleNavigateHome} />
-            </motion.div>
+            </div>
           ) : view === 'schemes' ? (
-            <motion.div
-              key="schemes"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div key="schemes" className="animate-in fade-in duration-300">
               <SchemesFinder onBack={handleNavigateHome} />
-            </motion.div>
+            </div>
           ) : view === 'expense' ? (
-            <motion.div
-              key="expense"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.02 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div key="expense" className="animate-in fade-in duration-300">
               <ExpenseTracker onBack={handleNavigateHome} />
-            </motion.div>
+            </div>
           ) : view === 'admin' ? (
-            <motion.div
-              key="admin"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div key="admin" className="animate-in fade-in duration-300">
               <AdminDashboard onBack={handleNavigateHome} />
-            </motion.div>
+            </div>
           ) : view === 'tech-stack' ? (
-            <motion.div
-              key="tech-stack"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div key="tech-stack" className="animate-in fade-in duration-300">
               <AboutTechStack onBack={handleNavigateHome} />
-            </motion.div>
+            </div>
           ) : !prediction && !scanning ? (
-            <motion.div
-              key="home"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-            >
+            <div key="home" className="animate-in fade-in duration-300">
               <Hero language={language} />
               {!user && (
                 <section className="max-w-4xl mx-auto px-6 py-12">
@@ -467,22 +402,19 @@ function App() {
                 </>
               )}
               <SupportSection />
-            </motion.div>
+            </div>
           ) : scanning ? (
-            <motion.div
+            <div
               key="scanning"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={`fixed inset-0 z-40 flex flex-col items-center justify-center ${theme === ThemeMode.DARK ? 'bg-obsidian' : 'bg-ivory'}`}
+              className={`fixed inset-0 z-40 flex flex-col items-center justify-center animate-in fade-in duration-300 ${theme === ThemeMode.DARK ? 'bg-obsidian' : 'bg-ivory'}`}
             >
                <div className="relative w-64 h-64">
-                  <motion.div 
+                  <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                     className="absolute inset-0 border-t-2 border-emerald-500 rounded-full"
                   ></motion.div>
-                  <motion.div 
+                  <motion.div
                     animate={{ rotate: -360 }}
                     transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                     className="absolute inset-4 border-r-2 border-gold rounded-full"
@@ -492,20 +424,15 @@ function App() {
                   </div>
                </div>
                <p className="mt-8 text-espresso dark:text-gold-light font-outfit text-lg tracking-wide">Analysing Weather & Disease risks...</p>
-            </motion.div>
+            </div>
           ) : (
-            <motion.div
+            <div
               key="results"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -50 }}
-              transition={{ duration: 0.6, type: "spring", damping: 20 }}
-              className="pt-20"
+              className="pt-20 animate-in fade-in slide-in-from-bottom-4 duration-300"
             >
                <ResultsView result={prediction!} onReset={() => setPrediction(null)} onOpenLogin={() => setIsLoginOpen(true)} />
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
         </Suspense>
       </main>
       <Footer />

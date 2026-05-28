@@ -376,14 +376,11 @@ export const History: React.FC<HistoryProps> = ({ onBack }) => {
 
         {/* Report Details */}
         <div className="lg:col-span-2">
-          <AnimatePresence mode="wait">
+          <>
             {selectedReport ? (
-              <motion.div
+              <div
                 key={selectedReport.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="bg-white dark:bg-charcoal border border-black/5 dark:border-white/5 rounded-[3rem] p-8 md:p-12 shadow-2xl relative overflow-hidden"
+                className="bg-white dark:bg-charcoal border border-black/5 dark:border-white/5 rounded-[3rem] p-8 md:p-12 shadow-2xl relative overflow-hidden animate-in fade-in slide-in-from-right-2 duration-300"
               >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-gold/5 rounded-full blur-[80px] pointer-events-none" />
                 
@@ -524,7 +521,7 @@ export const History: React.FC<HistoryProps> = ({ onBack }) => {
                     </button>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-white/5 border border-dashed border-gray-300 dark:border-gray-800 rounded-[3rem]">
                 <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center mb-6">
@@ -534,7 +531,7 @@ export const History: React.FC<HistoryProps> = ({ onBack }) => {
                 <p className="text-gray-500 text-sm max-w-xs">Choose an analysis from your history to view detailed insights and recommendations.</p>
               </div>
             )}
-          </AnimatePresence>
+          </>
         </div>
       </div>
     </div>

@@ -492,9 +492,9 @@ export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack }) => {
         </motion.div>
       )}
 
-      <AnimatePresence mode="wait">
+      <>
         {!result && !scanning ? (
-          <motion.div key="setup" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+          <div key="setup" className="animate-in fade-in duration-300">
             {/* Mission Specs */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
               {MISSION_SPECS.map((spec, i) => (
@@ -694,12 +694,10 @@ export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack }) => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
         ) : scanning ? (
-          <motion.div key="scanning" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center py-16"
-          >
+          <div key="scanning" className="flex flex-col items-center justify-center py-16 animate-in fade-in duration-300">
             {/* Scanning animation */}
             <div className="relative w-72 h-72 mb-12">
               <div className="absolute inset-0 border-2 border-gold/10 rounded-full" />
@@ -763,10 +761,10 @@ export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack }) => {
                 );
               })}
             </div>
-          </motion.div>
+          </div>
 
         ) : (
-          <motion.div key="results" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+          <div key="results" className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
             {/* Mission Complete Banner */}
             <motion.div
@@ -1122,9 +1120,9 @@ export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack }) => {
                 )}
               </motion.div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
     </div>
   );
 };

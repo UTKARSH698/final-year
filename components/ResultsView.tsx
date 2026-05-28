@@ -304,15 +304,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
 
                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                   <div className="lg:col-span-8 space-y-4">
-                     <AnimatePresence mode="wait">
-                       <motion.div
-                         key={activeTab}
-                         initial={{ opacity: 0, x: -20 }}
-                         animate={{ opacity: 1, x: 0 }}
-                         exit={{ opacity: 0, x: 20 }}
-                         transition={{ duration: 0.3 }}
-                         className="space-y-4"
-                       >
+                     <div key={activeTab} className="space-y-4 animate-in fade-in slide-in-from-left-2 duration-300">
                          {(activeTab === 'chemical' ? result.fertilizerNeeds.chemical : result.fertilizerNeeds.organic).map((plan, i) => (
                             <div key={i} className="group relative p-8 rounded-[2rem] bg-gray-50 dark:bg-white/2 border border-black/5 dark:border-white/5 hover:border-emerald-500/30 transition-all">
                                <div className="flex flex-col md:flex-row justify-between gap-6">
@@ -344,8 +336,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                                </div>
                             </div>
                          ))}
-                       </motion.div>
-                     </AnimatePresence>
+                     </div>
                   </div>
 
                   <div className="lg:col-span-4 space-y-6">
