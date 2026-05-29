@@ -12,6 +12,7 @@ interface CropRotationProps {
   soilType?: string;
   state?: string;
   onClose: () => void;
+  language?: string;
 }
 
 const ICON_MAP: Record<string, { icon: React.FC<any>; color: string; bg: string; label: string }> = {
@@ -107,7 +108,7 @@ const StepCard: React.FC<{ step: CropRotationStep; index: number; total: number 
   );
 };
 
-export const CropRotation: React.FC<CropRotationProps> = ({ cropName, soilType, state, onClose }) => {
+export const CropRotation: React.FC<CropRotationProps> = ({ cropName, soilType, state, onClose, language = 'English' }) => {
   const [plan, setPlan] = useState<CropRotationPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -116,7 +117,7 @@ export const CropRotation: React.FC<CropRotationProps> = ({ cropName, soilType, 
     setLoading(true);
     setError(null);
     try {
-      const result = await getCropRotationPlan(cropName, soilType || '', state || '');
+      const result = await getCropRotationPlan(cropName, soilType || '', state || '', language);
       setPlan(result);
     } catch (e) {
       console.error('[CropRotation] Failed:', e);

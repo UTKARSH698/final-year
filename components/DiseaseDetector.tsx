@@ -15,6 +15,7 @@ import { useAuth } from '../AuthContext';
 
 interface DiseaseDetectorProps {
   onBack: () => void;
+  language?: string;
 }
 
 /* ── Rasterize an SVG path to a base64 JPEG via Canvas ── */
@@ -140,7 +141,7 @@ const ConfidenceGauge: React.FC<{ value: number }> = ({ value }) => {
   );
 };
 
-export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack }) => {
+export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack, language = 'English' }) => {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -239,7 +240,7 @@ export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack }) => {
     setError(null);
     const startTime = Date.now();
     try {
-      const data = await detectDiseaseFromImage(base64);
+      const data = await detectDiseaseFromImage(base64, language);
       setScanTime(((Date.now() - startTime) / 1000));
       setResult(data);
       setScanCount(c => c + 1);

@@ -10,6 +10,7 @@ interface CropCalendarProps {
   duration: string;
   state: string;
   onClose: () => void;
+  language?: string;
 }
 
 const STAGE_COLORS = [
@@ -23,7 +24,7 @@ const STAGE_COLORS = [
   'bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400',
 ];
 
-export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, state, onClose }) => {
+export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, state, onClose, language = 'English' }) => {
   const [calendar, setCalendar] = useState<CropCalendarWeek[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -35,7 +36,7 @@ export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, 
     setLoading(true);
     setError(false);
     try {
-      const data = await getCropCalendar(cropName, duration, state || 'India');
+      const data = await getCropCalendar(cropName, duration, state || 'India', language);
       setCalendar(data);
       setLoaded(true);
     } catch {

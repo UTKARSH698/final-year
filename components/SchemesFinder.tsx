@@ -85,9 +85,10 @@ function parseAmount(amount: string): number {
 
 interface SchemeFinderProps {
   onBack: () => void;
+  language?: string;
 }
 
-export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack }) => {
+export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack, language = 'English' }) => {
   const [state, setState] = useState('');
   const [crop, setCrop] = useState('');
   const [landSize, setLandSize] = useState(2);
@@ -114,7 +115,7 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack }) => {
     setBookmarked(new Set());
     setCompareList([]);
     try {
-      const data = await getGovernmentSchemes(state, crop, landSize);
+      const data = await getGovernmentSchemes(state, crop, landSize, language);
       setSchemes(data);
       setSearchHistory(prev => {
         const exists = prev.find(h => h.state === state && h.crop === crop);

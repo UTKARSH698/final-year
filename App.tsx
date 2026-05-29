@@ -298,11 +298,11 @@ function App() {
             </div>
           ) : view === 'disease-detect' ? (
             <div key="disease-detect" className="animate-in fade-in duration-300">
-              <DiseaseDetector onBack={handleNavigateHome} />
+              <DiseaseDetector onBack={handleNavigateHome} language={language} />
             </div>
           ) : view === 'agri-drone' ? (
             <div key="agri-drone" className="animate-in fade-in duration-300">
-              <AgriDrone onBack={handleNavigateHome} />
+              <AgriDrone onBack={handleNavigateHome} language={language} />
             </div>
           ) : view === 'history' ? (
             <div key="history" className="animate-in fade-in duration-300">
@@ -310,7 +310,7 @@ function App() {
             </div>
           ) : view === 'schemes' ? (
             <div key="schemes" className="animate-in fade-in duration-300">
-              <SchemesFinder onBack={handleNavigateHome} />
+              <SchemesFinder onBack={handleNavigateHome} language={language} />
             </div>
           ) : view === 'expense' ? (
             <div key="expense" className="animate-in fade-in duration-300">
@@ -430,7 +430,7 @@ function App() {
               key="results"
               className="pt-20 animate-in fade-in slide-in-from-bottom-4 duration-300"
             >
-               <ResultsView result={prediction!} onReset={() => setPrediction(null)} onOpenLogin={() => setIsLoginOpen(true)} />
+               <ResultsView result={prediction!} onReset={() => setPrediction(null)} onOpenLogin={() => setIsLoginOpen(true)} language={language} />
             </div>
           )}
         </Suspense>

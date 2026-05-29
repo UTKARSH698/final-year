@@ -119,8 +119,10 @@ export const resolveLocation = async (query: string): Promise<Coordinates> => {
   return JSON.parse(match ? match[0] : '{"lat": 20.5937, "lng": 78.9629}') as Coordinates;
 };
 
-export const getTerrainAnalysis = async (coords: Coordinates): Promise<DroneAnalysisResult> => {
-  const prompt = `Perform a comprehensive terrain and irrigation analysis for the coordinates: Latitude ${coords.lat}, Longitude ${coords.lng}.
+export const getTerrainAnalysis = async (coords: Coordinates, language: string = 'English'): Promise<DroneAnalysisResult> => {
+  const prompt = `Respond in ${language}. All text values (summary, recommendation, health descriptions, etc.) must be written in ${language}. JSON keys must stay in English.
+
+Perform a comprehensive terrain and irrigation analysis for the coordinates: Latitude ${coords.lat}, Longitude ${coords.lng}.
 
     1. Find the nearest irrigation sources (canals, rivers, lakes, reservoirs, ponds, check dams, borewells, or major water tanks).
     2. Analyze the typical topography of this specific region (slope, elevation, drainage patterns).
@@ -684,7 +686,7 @@ export const getMarketForecast = async (cropName: string): Promise<MarketForecas
   };
 };
 
-export const detectDiseaseFromImage = async (base64Image: string): Promise<DiseaseDetectionResult> => {
+export const detectDiseaseFromImage = async (base64Image: string, language: string = 'English'): Promise<DiseaseDetectionResult> => {
   const imagePart = {
     inlineData: {
       data: base64Image.split(',')[1],
@@ -692,7 +694,9 @@ export const detectDiseaseFromImage = async (base64Image: string): Promise<Disea
     },
   };
   const textPart = {
-    text: `You are a senior plant pathologist with 20+ years of experience in Indian agriculture.
+    text: `Respond in ${language}. All descriptive text values (symptoms, treatment, prevention, errorMessage) must be written in ${language}. JSON keys and enum values (severity, diseaseType, pathogenType) must remain in English.
+
+You are a senior plant pathologist with 20+ years of experience in Indian agriculture.
 
 Analyze the provided image carefully:
 
@@ -830,7 +834,8 @@ export const streamChatResponse = async (history: ChatMessage[], message: string
 export const getCropCalendar = async (
   cropName: string,
   durationDays: string,
-  state: string
+  state: string,
+  language: string = 'English'
 ): Promise<CropCalendarWeek[]> => {
   const DEMO_CALENDAR: CropCalendarWeek[] = [
     { week: 1, label: 'Land Preparation', activities: ['Deep ploughing to 20–25 cm', 'Apply FYM / compost @ 5 t/acre', 'Level field for uniform moisture'], inputs: 'FYM 5 t/acre, Basal DAP 50 kg/acre', watchOut: 'Soil moisture — avoid sowing in waterlogged conditions' },
@@ -845,7 +850,9 @@ export const getCropCalendar = async (
   ];
 
   try {
-    const text = await generateText(`Generate a detailed week-by-week crop cultivation calendar for ${cropName} in ${state}, India.
+    const text = await generateText(`Respond in ${language}. All text values (label, activities, inputs, watchOut) must be in ${language}. JSON keys must stay in English.
+
+Generate a detailed week-by-week crop cultivation calendar for ${cropName} in ${state}, India.
 The crop duration is approximately ${durationDays}.
 Divide the full growing cycle into weekly stages. For each week include:
 - What activities the farmer should do
@@ -868,9 +875,12 @@ Generate stages covering the full cycle: land prep → sowing → vegetative →
 export const getGovernmentSchemes = async (
   state: string,
   crop: string,
-  landSizeAcres: number
+  landSizeAcres: number,
+  language: string = 'English'
 ): Promise<GovernmentScheme[]> => {
-  const text = await generateText(`List all applicable Indian government agricultural schemes for a farmer with these details:
+  const text = await generateText(`Respond in ${language}. All text values (benefit, eligibility, howToApply descriptions) must be in ${language}. Scheme names, ministry names, and JSON keys must remain in English.
+
+List all applicable Indian government agricultural schemes for a farmer with these details:
 - State: ${state}
 - Primary Crop: ${crop}
 - Land Size: ${landSizeAcres} acres
@@ -889,9 +899,12 @@ Only include schemes genuinely applicable to the given crop and land size. Inclu
 export const getCropRotationPlan = async (
   currentCrop: string,
   soilType: string,
-  state: string
+  state: string,
+  language: string = 'English'
 ): Promise<CropRotationPlan> => {
-  const text = await generateText(`You are an expert Indian agronomist. A farmer in ${state || 'India'} has just harvested ${currentCrop} on ${soilType || 'mixed'} soil.
+  const text = await generateText(`Respond in ${language}. All text values (reason, soilBenefit, overallBenefit, season labels) must be in ${language}. JSON keys, cropName, cropHindi, and icon values must remain in English.
+
+You are an expert Indian agronomist. A farmer in ${state || 'India'} has just harvested ${currentCrop} on ${soilType || 'mixed'} soil.
 
 Design an optimal 3-year crop rotation cycle (4-5 steps) that:
 1. Replenishes soil nutrients depleted by ${currentCrop}

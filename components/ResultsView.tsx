@@ -19,9 +19,10 @@ interface ResultsViewProps {
   result: PredictionResult;
   onReset: () => void;
   onOpenLogin: () => void;
+  language?: string;
 }
 
-export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpenLogin }) => {
+export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpenLogin, language = 'English' }) => {
   const [activeTab, setActiveTab] = useState<'chemical' | 'organic'>('chemical');
   const [isSaved, setIsSaved] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -582,6 +583,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
         cropName={result.cropName}
         duration={result.duration}
         state=""
+        language={language}
         onClose={() => setShowCropCalendar(false)}
       />
     )}
@@ -589,6 +591,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
     {showCropRotation && (
       <CropRotation
         cropName={result.cropName}
+        language={language}
         onClose={() => setShowCropRotation(false)}
       />
     )}

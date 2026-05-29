@@ -21,6 +21,7 @@ const safeRender = (val: unknown): string => {
 
 interface AgriDroneProps {
   onBack: () => void;
+  language?: string;
 }
 
 const SCAN_STEPS = [
@@ -76,7 +77,7 @@ const getScoreColor = (s: number) => s >= 70 ? 'text-emerald-500' : s >= 45 ? 't
 const getScoreLabel = (s: number) => s >= 70 ? 'Excellent' : s >= 45 ? 'Moderate' : 'Poor';
 const getScoreBg = (s: number) => s >= 70 ? 'from-emerald-500' : s >= 45 ? 'from-amber-500' : 'from-red-500';
 
-export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack }) => {
+export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack, language = 'English' }) => {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<DroneAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -194,7 +195,7 @@ export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack }) => {
     setScanStep(0);
     setError(null);
     try {
-      const data = await getTerrainAnalysis(coords);
+      const data = await getTerrainAnalysis(coords, language);
       setResult(data);
 
       // Save to history
