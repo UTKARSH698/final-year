@@ -8,6 +8,8 @@ import {
   TrendingUp, RefreshCw
 } from 'lucide-react';
 import { getTerrainAnalysis, resolveLocation } from '../services/geminiService';
+import { Language } from '../types';
+import { getT } from '../constants';
 import { useAuth } from '../AuthContext';
 import { DroneAnalysisResult, Coordinates } from '../types';
 
@@ -74,10 +76,11 @@ const computeHealthScore = (r: DroneAnalysisResult): number => {
 };
 
 const getScoreColor = (s: number) => s >= 70 ? 'text-emerald-500' : s >= 45 ? 'text-amber-500' : 'text-red-500';
-const getScoreLabel = (s: number) => s >= 70 ? 'Excellent' : s >= 45 ? 'Moderate' : 'Poor';
+const getScoreLabel = (s: number, tFn?: (k: any) => string) => s >= 70 ? (tFn?.('excellent') ?? 'Excellent') : s >= 45 ? (tFn?.('moderate') ?? 'Moderate') : 'Poor';
 const getScoreBg = (s: number) => s >= 70 ? 'from-emerald-500' : s >= 45 ? 'from-amber-500' : 'from-red-500';
 
 export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack, language = 'English' }) => {
+  const t = getT(language as Language);
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<DroneAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -374,7 +377,7 @@ export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack, language = 'Englis
             <Plane className="text-gold w-7 h-7" />
           </motion.div>
           <div>
-            <h1 className="text-4xl font-outfit font-bold text-gray-900 dark:text-ivory tracking-tight">AgriDrone V2</h1>
+            <h1 className="text-4xl font-outfit font-bold text-gray-900 dark:text-ivory tracking-tight">{t('agriDrone')}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 font-inter flex items-center gap-2">
               Satellite-guided terrain intelligence
               <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
@@ -611,10 +614,10 @@ export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack, language = 'Englis
                   <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.3em] mb-4">Analysis Modules</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { icon: Droplets, label: 'Soil Moisture', color: 'text-blue-500' },
+                      { icon: Droplets, label: t('soilMoisture'), color: 'text-blue-500' },
                       { icon: Layers, label: 'Topography', color: 'text-emerald-500' },
-                      { icon: Eye, label: 'Vegetation NDVI', color: 'text-green-500' },
-                      { icon: MapPin, label: 'Water Sources', color: 'text-cyan-500' },
+                      { icon: Eye, label: t('vegetationIndex'), color: 'text-green-500' },
+                      { icon: MapPin, label: t('waterSources'), color: 'text-cyan-500' },
                       { icon: Thermometer, label: 'Thermal Map', color: 'text-orange-500' },
                       { icon: Wind, label: 'Drainage Flow', color: 'text-violet-500' },
                     ].map((mod) => (
@@ -730,7 +733,7 @@ export const AgriDrone: React.FC<AgriDroneProps> = ({ onBack, language = 'Englis
               />
             </div>
 
-            <h2 className="text-3xl font-outfit font-bold text-gray-900 dark:text-white mb-3">Scanning Terrain</h2>
+            <h2 className="text-3xl font-outfit font-bold text-gray-900 dark:text-white mb-3">{t('scanning')}</h2>
             <p className="text-gray-500 dark:text-gray-400 mb-10">Analyzing satellite data for irrigation intelligence</p>
 
             {/* Step Progress */}

@@ -10,8 +10,8 @@ import {
   Share2, Copy, Check, Zap, ArrowRight
 } from 'lucide-react';
 import { getGovernmentSchemes } from '../services/geminiService';
-import { GovernmentScheme } from '../types';
-import { MANDI_RATES } from '../constants';
+import { GovernmentScheme, Language } from '../types';
+import { MANDI_RATES, getT } from '../constants';
 
 const INDIAN_STATES = [
   'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat',
@@ -89,6 +89,7 @@ interface SchemeFinderProps {
 }
 
 export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack, language = 'English' }) => {
+  const t = getT(language as Language);
   const [state, setState] = useState('');
   const [crop, setCrop] = useState('');
   const [landSize, setLandSize] = useState(2);
@@ -199,7 +200,7 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack, language = 
               <Building2 size={28} className="text-gold" />
             </div>
             <div>
-              <h1 className="text-5xl font-outfit font-bold text-gray-900 dark:text-white">Scheme Finder</h1>
+              <h1 className="text-5xl font-outfit font-bold text-gray-900 dark:text-white">{t('schemeFinder')}</h1>
               <p className="text-gray-500 font-medium">AI-powered discovery of PM-KISAN, PMFBY, KCC & 100+ schemes</p>
             </div>
           </div>
@@ -256,7 +257,7 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack, language = 
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Your State</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('selectState')}</label>
               <select
                 value={state}
                 onChange={e => setState(e.target.value)}
@@ -267,7 +268,7 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack, language = 
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Primary Crop</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('cropType')}</label>
               <input
                 type="text"
                 value={crop}
@@ -278,7 +279,7 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack, language = 
             </div>
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                Land Size: <span className="text-gold">{landSize} acres</span>
+                {t('landSize')}: <span className="text-gold">{landSize} acres</span>
               </label>
               <div className="relative pt-2">
                 <input
@@ -320,7 +321,7 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack, language = 
             className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-charcoal dark:bg-gold text-white dark:text-black font-bold tracking-widest uppercase hover:scale-105 transition-all disabled:opacity-50 shadow-xl"
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
-            Find My Schemes
+            {t('findSchemes')}
           </button>
         </motion.div>
 
@@ -571,19 +572,19 @@ export const SchemesFinder: React.FC<SchemeFinderProps> = ({ onBack, language = 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div>
                                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                  <Heart size={10} /> Benefit
+                                  <Heart size={10} /> {t('benefit')}
                                 </div>
                                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{scheme.benefit}</p>
                               </div>
                               <div>
                                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                  <CheckCircle2 size={10} /> Eligibility
+                                  <CheckCircle2 size={10} /> {t('eligibility')}
                                 </div>
                                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{scheme.eligibility}</p>
                               </div>
                               <div className="md:col-span-2 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
                                 <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-2">
-                                  <ArrowRight size={12} /> How to Apply
+                                  <ArrowRight size={12} /> {t('howToApply')}
                                 </div>
                                 <p className="text-sm text-gray-700 dark:text-gray-300">{scheme.howToApply}</p>
                               </div>

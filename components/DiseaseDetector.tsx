@@ -10,8 +10,9 @@ import {
   ImageIcon, BarChart3, AlertCircle, PartyPopper, Columns2
 } from 'lucide-react';
 import { detectDiseaseFromImage } from '../services/geminiService';
-import { DiseaseDetectionResult } from '../types';
+import { DiseaseDetectionResult, Language } from '../types';
 import { useAuth } from '../AuthContext';
+import { getT } from '../constants';
 
 interface DiseaseDetectorProps {
   onBack: () => void;
@@ -142,6 +143,7 @@ const ConfidenceGauge: React.FC<{ value: number }> = ({ value }) => {
 };
 
 export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack, language = 'English' }) => {
+  const t = getT(language as Language);
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -364,14 +366,14 @@ export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack, langua
               <ArrowLeft size={16} /> DASHBOARD
             </button>
             <div className="flex items-center gap-4">
-              <h1 className="text-4xl md:text-5xl font-outfit font-bold text-gray-900 dark:text-white tracking-tight">Disease Intelligence</h1>
+              <h1 className="text-4xl md:text-5xl font-outfit font-bold text-gray-900 dark:text-white tracking-tight">{t('diseaseDetector')}</h1>
               {scanCount > 0 && (
                 <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-gold/10 text-gold border border-gold/20">
                   {scanCount} scan{scanCount > 1 ? 's' : ''}
                 </span>
               )}
             </div>
-            <p className="text-gray-500 mt-2 text-base">Upload or drag-drop a leaf image for instant AI pathogen detection</p>
+            <p className="text-gray-500 mt-2 text-base">{t('uploadPrompt')}</p>
           </div>
           <div className="flex items-center gap-2">
             {result?.isValidImage && !isHealthy && (
@@ -591,7 +593,7 @@ export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack, langua
                         >
                           <CheckCircle2 size={48} className="text-emerald-500" />
                         </motion.div>
-                        <h2 className="text-3xl font-outfit font-bold text-emerald-600 dark:text-emerald-400 mb-2">Healthy Plant!</h2>
+                        <h2 className="text-3xl font-outfit font-bold text-emerald-600 dark:text-emerald-400 mb-2">{t('healthy')}!</h2>
                         <p className="text-gray-500 text-sm mb-4 max-w-sm mx-auto">No diseases detected. Your plant looks healthy and thriving. Keep up the good agricultural practices!</p>
                         <div className="flex items-center justify-center gap-4 mb-6">
                           <div className="text-center">
@@ -607,7 +609,7 @@ export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack, langua
                         </div>
                         <div className="flex items-center justify-center gap-3">
                           <button onClick={reset} className="px-6 py-3 rounded-2xl bg-gradient-to-r from-gold to-yellow-500 text-black font-bold text-xs tracking-widest hover:scale-105 transition-all shadow-lg shadow-gold/20">
-                            SCAN ANOTHER
+                            {t('scanAnother').toUpperCase()}
                           </button>
                           <button onClick={handleShare} className="p-3 rounded-2xl bg-white dark:bg-charcoal border border-black/5 dark:border-white/10 text-gray-400 hover:text-gold transition-colors">
                             <Share2 size={16} />
@@ -638,7 +640,7 @@ export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack, langua
                         {/* Severity */}
                         <div className={`p-3 rounded-2xl flex flex-col items-center justify-center gap-1 border ${sev?.bg} ${sev?.border}`}>
                           <SeverityRing severity={result.severity} />
-                          <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Severity</span>
+                          <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">{t('severity')}</span>
                         </div>
                         {/* Disease Type */}
                         <div className={`p-3 rounded-2xl flex flex-col items-center justify-center gap-2 border ${typeMeta?.bg} border-black/5 dark:border-white/5`}>
@@ -661,7 +663,7 @@ export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack, langua
                       {/* ── Symptoms ─────────────────────────── */}
                       <div className="mb-5">
                         <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                          <Microscope size={11} /> Symptoms Observed
+                          <Microscope size={11} /> {t('symptoms')}
                         </h4>
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{result.symptoms}</p>
                       </div>
@@ -670,7 +672,7 @@ export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack, langua
                       {cropTags.length > 0 && (
                         <div className="mb-5">
                           <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                            <Sprout size={11} /> Commonly Affected Crops
+                            <Sprout size={11} /> {t('affectedCrops')}
                           </h4>
                           <div className="flex flex-wrap gap-1.5">
                             {cropTags.map((crop, i) => (
@@ -717,7 +719,7 @@ export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack, langua
                     {/* ── Treatment Card ─────────────────────── */}
                     <div className="bg-gradient-to-br from-emerald-500/5 to-emerald-600/5 dark:from-emerald-500/10 dark:to-emerald-600/5 border border-emerald-500/15 rounded-[2rem] p-6 shadow-lg">
                       <h4 className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-1.5">
-                        <Shield size={12} /> Recommended Treatment
+                        <Shield size={12} /> {t('treatment')}
                       </h4>
                       {treatmentSteps.length > 1 ? (
                         <div className="space-y-3">
@@ -738,7 +740,7 @@ export const DiseaseDetector: React.FC<DiseaseDetectorProps> = ({ onBack, langua
                     {/* ── Prevention Card ───────────────────── */}
                     <div className="bg-white dark:bg-charcoal border border-black/5 dark:border-white/10 rounded-[2rem] p-6 shadow-lg">
                       <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                        <XCircle size={11} /> Prevention Tips
+                        <XCircle size={11} /> {t('prevention')}
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{result.prevention}</p>
                     </div>

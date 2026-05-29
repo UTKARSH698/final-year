@@ -11,6 +11,8 @@ import {
 import { PredictionResult } from '../types';
 import { CropCalendar } from './CropCalendar';
 import { CropRotation } from './CropRotation';
+import { Language } from '../types';
+import { getT } from '../constants';
 import { useToast } from './Toast';
 
 import { useAuth } from '../AuthContext';
@@ -23,6 +25,7 @@ interface ResultsViewProps {
 }
 
 export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpenLogin, language = 'English' }) => {
+  const t = getT(language as Language);
   const [activeTab, setActiveTab] = useState<'chemical' | 'organic'>('chemical');
   const [isSaved, setIsSaved] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -188,15 +191,15 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                    </div>
                    <div className="grid grid-cols-3 gap-8 border-t border-white/10 pt-10 mt-10">
                       <div>
-                        <div className="text-gray-500 text-[10px] uppercase tracking-[0.2em] mb-2 font-bold">Duration</div>
+                        <div className="text-gray-500 text-[10px] uppercase tracking-[0.2em] mb-2 font-bold">{t('duration')}</div>
                         <div className="text-xl font-outfit text-white font-bold">{result.duration}</div>
                       </div>
                       <div>
-                        <div className="text-gray-500 text-[10px] uppercase tracking-[0.2em] mb-2 font-bold">Avg Yield</div>
+                        <div className="text-gray-500 text-[10px] uppercase tracking-[0.2em] mb-2 font-bold">{t('yieldEstimate')}</div>
                         <div className="text-xl font-outfit text-white font-bold">{result.yieldEstimate}</div>
                       </div>
                       <div>
-                        <div className="text-gray-500 text-[10px] uppercase tracking-[0.2em] mb-2 font-bold">Market Rate</div>
+                        <div className="text-gray-500 text-[10px] uppercase tracking-[0.2em] mb-2 font-bold">{t('marketPrice')}</div>
                         <div className="text-xl font-outfit text-gold font-bold">{result.marketPriceEstimate}</div>
                       </div>
                    </div>
@@ -209,7 +212,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                     <div className="w-8 h-8 rounded-lg bg-gold/10 flex items-center justify-center">
                        <AlertCircle size={18} className="text-gold" />
                     </div>
-                    Agronomist Insight
+                    {t('agronomistNote')}
                   </h4>
                   <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed font-inter font-medium">{result.agronomistNote}</p>
                </motion.div>
@@ -278,7 +281,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                         <FlaskConical size={28} />
                      </div>
                      <div>
-                        <h3 className="text-3xl font-outfit font-bold text-gray-900 dark:text-white tracking-tight">Fertilizer Precision Plan</h3>
+                        <h3 className="text-3xl font-outfit font-bold text-gray-900 dark:text-white tracking-tight">{t('fertilizerPlan')}</h3>
                         <p className="text-sm text-gray-500 font-medium">Science-backed soil replenishment strategy.</p>
                      </div>
                   </div>
@@ -290,15 +293,15 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                            activeTab === 'chemical' ? 'bg-white dark:bg-charcoal text-emerald-600 shadow-lg' : 'text-gray-400'
                         }`}
                      >
-                        CHEMICAL
+                        {t('chemical').toUpperCase()}
                      </button>
-                     <button 
+                     <button
                         onClick={() => setActiveTab('organic')}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-jakarta font-bold tracking-widest transition-all ${
                            activeTab === 'organic' ? 'bg-white dark:bg-charcoal text-emerald-600 shadow-lg' : 'text-gray-400'
                         }`}
                      >
-                        ORGANIC
+                        {t('organic').toUpperCase()}
                      </button>
                   </div>
                </div>
@@ -435,7 +438,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                   >
                       {result.diseaseRisk.level === 'High' ? <Bug size={32} className="text-white" /> : <ShieldAlert size={32} className="text-white" />}
                   </motion.div>
-                  <h3 className="text-2xl font-outfit font-bold text-gray-900 dark:text-white">Disease Alert</h3>
+                  <h3 className="text-2xl font-outfit font-bold text-gray-900 dark:text-white">{t('diseaseRisk')}</h3>
                   <div className={`mt-2 px-4 py-1 rounded-full text-[10px] font-bold tracking-[0.2em] uppercase ${
                       result.diseaseRisk.level === 'High' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
                   }`}>{result.diseaseRisk.level} Priority</div>
@@ -485,28 +488,28 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                <div className="space-y-4">
                   <div className="flex items-center gap-2 text-gray-400">
                      <Zap size={14} className="text-blue-500" />
-                     <span className="text-[10px] font-jakarta font-bold uppercase tracking-[0.1em]">Target Yield</span>
+                     <span className="text-[10px] font-jakarta font-bold uppercase tracking-[0.1em]">{t('expectedYield')}</span>
                   </div>
                   <div className="text-3xl font-outfit font-bold text-gray-900 dark:text-white">{result.profitability.expectedYieldPerAcre}</div>
                </div>
                <div className="space-y-4">
                   <div className="flex items-center gap-2 text-gray-400">
                      <Wallet size={14} className="text-red-400" />
-                     <span className="text-[10px] font-jakarta font-bold uppercase tracking-[0.1em]">Input Costs</span>
+                     <span className="text-[10px] font-jakarta font-bold uppercase tracking-[0.1em]">{t('costOfCultivation')}</span>
                   </div>
                   <div className="text-3xl font-outfit font-bold text-gray-900 dark:text-white">{result.profitability.costOfCultivation}</div>
                </div>
                <div className="space-y-4">
                   <div className="flex items-center gap-2 text-gray-400">
                      <TrendingUp size={14} className="text-gold" />
-                     <span className="text-[10px] font-jakarta font-bold uppercase tracking-[0.1em]">Gross Value</span>
+                     <span className="text-[10px] font-jakarta font-bold uppercase tracking-[0.1em]">{t('marketValue')}</span>
                   </div>
                   <div className="text-3xl font-outfit font-bold text-gold">{result.profitability.marketValue}</div>
                </div>
                <div className="p-6 rounded-3xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20">
                   <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-2">
                      <CheckCircle2 size={14} />
-                     <span className="text-[10px] font-jakarta font-bold uppercase tracking-[0.1em]">Expected Surplus</span>
+                     <span className="text-[10px] font-jakarta font-bold uppercase tracking-[0.1em]">{t('netProfit')}</span>
                   </div>
                   <div className="text-4xl font-outfit font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{result.profitability.netProfit}</div>
                </div>
@@ -519,7 +522,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
               onClick={onReset}
               className="text-sm font-jakarta font-bold text-gray-500 hover:text-gold transition-colors flex items-center gap-2 px-6"
             >
-               Analyse Different Field Parameters
+               {t('reset')}
             </button>
             <div className="flex items-center gap-3 flex-wrap">
                <motion.button
@@ -530,7 +533,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                  aria-label="View weekly crop calendar schedule"
                  className="flex items-center gap-2 px-5 py-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-600 transition-all text-[10px] font-bold tracking-widest"
                >
-                 <CalendarDays size={18} /> CROP CALENDAR
+                 <CalendarDays size={18} /> {t('cropCalendar').toUpperCase()}
                </motion.button>
                <motion.button
                  whileHover={{ scale: 1.05 }}
@@ -540,7 +543,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ result, onReset, onOpe
                  aria-label="View AI crop rotation recommendation"
                  className="flex items-center gap-2 px-5 py-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-black/10 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-emerald-500/10 hover:text-emerald-600 transition-all text-[10px] font-bold tracking-widest"
                >
-                 <RefreshCw size={18} /> CROP ROTATION
+                 <RefreshCw size={18} /> {t('cropRotation').toUpperCase()}
                </motion.button>
                <motion.button
                  whileHover={{ scale: 1.05 }}
