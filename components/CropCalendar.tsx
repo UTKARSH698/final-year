@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Loader2, Sprout, Droplets, ShieldAlert, ChevronDown, ChevronUp, RefreshCw, AlertTriangle } from 'lucide-react';
 import { getCropCalendar } from '../services/geminiService';
-import { CropCalendarWeek } from '../types';
+import { CropCalendarWeek, Language } from '../types';
+import { getT } from '../constants';
 
 interface CropCalendarProps {
   cropName: string;
@@ -30,6 +31,7 @@ export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, 
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
   const [expanded, setExpanded] = useState<number | null>(0);
+  const t = getT(language as Language);
 
   const load = async () => {
     if (loaded) return;
@@ -83,7 +85,7 @@ export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, 
           {loading && (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 size={36} className="animate-spin text-emerald-500" />
-              <p className="text-sm text-gray-500 font-bold">Generating your crop schedule with AI...</p>
+              <p className="text-sm text-gray-500 font-bold">{t('generatingSchedule')}</p>
             </div>
           )}
 
@@ -92,13 +94,13 @@ export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, 
               <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center">
                 <AlertTriangle size={28} className="text-amber-500" />
               </div>
-              <p className="text-sm font-bold text-gray-500">{error ? 'Failed to generate schedule' : 'No schedule available'}</p>
+              <p className="text-sm font-bold text-gray-500">{error ? t('failedSchedule') : t('noSchedule')}</p>
               <p className="text-xs text-gray-400 text-center max-w-xs">Check your internet connection and try again. AI needs a moment to build your crop calendar.</p>
               <button
                 onClick={() => { setLoaded(false); load(); }}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-sm hover:bg-emerald-500/20 transition-all"
               >
-                <RefreshCw size={14} /> Retry
+                <RefreshCw size={14} /> {t('retry')}
               </button>
             </div>
           )}
@@ -123,7 +125,7 @@ export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, 
                       </div>
                       <div>
                         <div className="font-outfit font-bold text-gray-900 dark:text-white">{week.label}</div>
-                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Week {week.week}</div>
+                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{t('week')} {week.week}</div>
                       </div>
                     </div>
                     {expanded === i ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
@@ -140,7 +142,7 @@ export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, 
                         <div className="px-5 pb-5 space-y-4 border-t border-black/5 dark:border-white/5 pt-4">
                           <div>
                             <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-                              <Sprout size={12} /> Activities
+                              <Sprout size={12} /> {t('activities')}
                             </div>
                             <ul className="space-y-1">
                               {week.activities.map((a, j) => (
@@ -152,11 +154,11 @@ export const CropCalendar: React.FC<CropCalendarProps> = ({ cropName, duration, 
                           </div>
                           <div className="grid grid-cols-2 gap-3">
                             <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
-                              <div className="flex items-center gap-2 text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1"><Droplets size={10} /> Inputs</div>
+                              <div className="flex items-center gap-2 text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1"><Droplets size={10} /> {t('inputs')}</div>
                               <p className="text-xs text-gray-600 dark:text-gray-400">{week.inputs}</p>
                             </div>
                             <div className="p-3 rounded-xl bg-red-500/5 border border-red-500/10">
-                              <div className="flex items-center gap-2 text-[10px] font-bold text-red-500 uppercase tracking-widest mb-1"><ShieldAlert size={10} /> Watch Out</div>
+                              <div className="flex items-center gap-2 text-[10px] font-bold text-red-500 uppercase tracking-widest mb-1"><ShieldAlert size={10} /> {t('watchOut')}</div>
                               <p className="text-xs text-gray-600 dark:text-gray-400">{week.watchOut}</p>
                             </div>
                           </div>

@@ -7,14 +7,16 @@ import {
   Terminal, Wifi, Database, Radio,
   FileUp, Camera, X, FileText, Sparkles, AlertTriangle
 } from 'lucide-react';
-import { UserLocation } from '../types';
+import { UserLocation, Language } from '../types';
 import { useToast } from './Toast';
 import { extractSoilReport, SoilReportData } from '../services/geminiService';
+import { getT } from '../constants';
 
 interface PredictionFormProps {
   onAnalyze: (data: any) => void;
   isLoading: boolean;
   onLocationUpdate: (location: UserLocation) => void;
+  language?: Language;
 }
 
 const SOIL_TYPES = [
@@ -46,8 +48,9 @@ const REGIONAL_DEFAULTS: Record<string, { rainfall: number, soil: string, n: num
   "Chhattisgarh": { rainfall: 1300, soil: "Red Soil", n: 60, p: 30, k: 30, ph: 6.5 },
 };
 
-export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoading, onLocationUpdate }) => {
+export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoading, onLocationUpdate, language = Language.EN }) => {
   const { toast } = useToast();
+  const t = getT(language);
   const [formData, setFormData] = useState({
     n: 50,
     p: 50,
@@ -320,7 +323,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
               </motion.div>
               <div>
                  <h3 className="text-lg font-outfit font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    Live IoT Sensor Mode
+                    {t('iotSensorMode')}
                     {iotMode && <span className="text-[9px] bg-emerald-500 text-white px-2 py-0.5 rounded-full animate-pulse tracking-widest">ACTIVE</span>}
                  </h3>
                  <p className="text-xs text-gray-500 font-medium">Auto-sync with real-time field telemetry hardware.</p>
@@ -350,7 +353,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
 
           <div className="mb-10 relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                <h2 className="text-3xl md:text-4xl font-outfit text-gray-900 dark:text-white font-bold">Field Analysis</h2>
+                <h2 className="text-3xl md:text-4xl font-outfit text-gray-900 dark:text-white font-bold">{t('fieldAnalysis')}</h2>
                 <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm font-medium">Upload your Soil Health Card, use IoT sensors, or enter parameters manually.</p>
               </div>
               <AnimatePresence>
@@ -388,7 +391,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                   </div>
                   <input 
                       type="text" 
-                      placeholder="Enter City / Region"
+                      placeholder={t('enterCity')}
                       value={formData.city}
                       onChange={handleManualLocation}
                       className="w-full h-14 pl-12 pr-4 bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white font-bold placeholder:font-medium placeholder:text-gray-400 outline-none"
@@ -416,7 +419,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                   className="h-14 px-6 md:px-8 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-bold hover:bg-emerald-50 dark:hover:bg-white/10 hover:text-emerald-700 transition-all flex items-center gap-2 justify-center shadow-sm whitespace-nowrap active:scale-95"
               >
                   {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crosshair className="w-4 h-4" />}
-                  {locating ? "Scanning..." : "Detect Location"}
+                  {locating ? t('analyzing') : t('detectLocation')}
               </motion.button>
           </div>
           {touched.city && fieldErrors.city && (
@@ -473,7 +476,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                 <FileText size={18} className="text-amber-500" />
               </div>
               <div>
-                <h3 className="text-sm font-outfit font-bold text-gray-900 dark:text-white">Have a Soil Health Card?</h3>
+                <h3 className="text-sm font-outfit font-bold text-gray-900 dark:text-white">{t('soilCard')}</h3>
                 <p className="text-[10px] text-gray-400 font-medium">Upload your soil report and we'll auto-fill all parameters with AI.</p>
               </div>
             </div>
@@ -487,14 +490,14 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                   onClick={() => soilReportInputRef.current?.click()}
                   className="flex items-center gap-3 px-5 py-3.5 rounded-2xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 hover:border-amber-500/50 transition-all text-sm font-bold text-amber-700 dark:text-amber-400 flex-1"
                 >
-                  <FileUp size={18} /> Upload Soil Report
+                  <FileUp size={18} /> {t('uploadSoilReport')}
                 </button>
                 <button
                   type="button"
                   onClick={() => soilCameraRef.current?.click()}
                   className="flex items-center gap-3 px-5 py-3.5 rounded-2xl border-2 border-dashed border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 hover:border-amber-500/50 transition-all text-sm font-bold text-amber-700 dark:text-amber-400"
                 >
-                  <Camera size={18} /> Take Photo
+                  <Camera size={18} /> {t('takePhoto')}
                 </button>
               </div>
             ) : (
@@ -521,7 +524,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <Sparkles size={14} className="text-emerald-500" />
-                          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Report Analyzed Successfully</span>
+                          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{t('reportAnalyzed')}</span>
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{soilReportData.summary}</p>
                         <div className="flex flex-wrap gap-2">
@@ -578,9 +581,9 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
              <div className="space-y-8">
                 {[
-                  { label: 'Nitrogen (N)', key: 'n', min: 0, max: 150, unit: 'mg/kg', icon: Radio },
-                  { label: 'Phosphorus (P)', key: 'p', min: 0, max: 80, unit: 'mg/kg', icon: Database },
-                  { label: 'Potassium (K)', key: 'k', min: 0, max: 100, unit: 'mg/kg', icon: Radio },
+                  { label: t('nitrogen'), key: 'n', min: 0, max: 150, unit: 'mg/kg', icon: Radio },
+                  { label: t('phosphorus'), key: 'p', min: 0, max: 80, unit: 'mg/kg', icon: Database },
+                  { label: t('potassium'), key: 'k', min: 0, max: 100, unit: 'mg/kg', icon: Radio },
                 ].map((field) => (
                   <div key={field.key} className={`group transition-all duration-500 ${iotMode ? 'opacity-90' : 'opacity-100'}`}>
                     <div className="flex justify-between mb-3 items-center">
@@ -623,7 +626,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                 <div className="group relative">
                   <div className="flex justify-between mb-3 relative">
                       <div className="flex items-center gap-2">
-                        <label className="block text-xs font-jakarta tracking-widest text-gray-500 dark:text-gray-400 uppercase font-bold">Soil Type</label>
+                        <label className="block text-xs font-jakarta tracking-widest text-gray-500 dark:text-gray-400 uppercase font-bold">{t('soilType')}</label>
                         <button onMouseEnter={() => setShowSoilInfo(true)} onMouseLeave={() => setShowSoilInfo(false)} className="text-gray-500 dark:text-gray-400 hover:text-gold transition-colors">
                           <Info size={14} />
                         </button>
@@ -651,7 +654,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                 <div className="group">
                     <div className="flex justify-between mb-3 items-center">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-jakarta tracking-widest text-gray-500 dark:text-gray-400 uppercase font-bold">Soil pH Level</label>
+                        <label className="text-xs font-jakarta tracking-widest text-gray-500 dark:text-gray-400 uppercase font-bold">{t('soilPh')}</label>
                         {iotMode && <Activity size={10} className="text-emerald-500 animate-pulse" />}
                       </div>
                       <div className={`flex items-center gap-2 px-2 py-1 rounded-lg border transition-all ${iotMode ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-white dark:bg-black/20 border-gray-200 dark:border-white/5'}`}>
@@ -678,7 +681,7 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                 <div className="group">
                     <div className="flex justify-between mb-3 items-center">
                       <div className="flex items-center gap-2">
-                           <label className="text-xs font-jakarta tracking-widest text-gray-500 dark:text-gray-400 uppercase font-bold">Rainfall Estimate</label>
+                           <label className="text-xs font-jakarta tracking-widest text-gray-500 dark:text-gray-400 uppercase font-bold">{t('rainfallEst')}</label>
                            <Droplets className="w-3 h-3 text-blue-500" />
                       </div>
                       <div className="flex items-center gap-2 bg-white dark:bg-black/20 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/5">
@@ -708,9 +711,9 @@ export const PredictionForm: React.FC<PredictionFormProps> = ({ onAnalyze, isLoa
                   className="w-full mt-8 bg-charcoal dark:bg-white text-white dark:text-obsidian h-16 rounded-xl font-bold font-jakarta tracking-wider transition-all duration-300 flex items-center justify-center gap-2 group shadow-xl"
                 >
                   {isLoading ? (
-                    <>Processing <Loader2 className="animate-spin ml-2" /></>
+                    <>{t('processing')} <Loader2 className="animate-spin ml-2" /></>
                   ) : (
-                    <>ANALYSE SOIL DATA <ChevronRight className="group-hover:translate-x-1 transition-transform" /></>
+                    <>{t('analyseSoilData').toUpperCase()} <ChevronRight className="group-hover:translate-x-1 transition-transform" /></>
                   )}
                 </motion.button>
              </div>

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Leaf, Globe, Sun, Moon, Type, BookOpen, ShoppingBag, TrendingUp, Scan, Plane, User as UserIcon, LogOut, History, Receipt, FileText, Shield } from 'lucide-react';
-import { LANGUAGES } from '../constants';
+import { LANGUAGES, getT } from '../constants';
 import { ThemeMode, Language } from '../types';
 import { useAuth } from '../AuthContext';
 
@@ -35,6 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [userOpen, setUserOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, logout } = useAuth();
+  const t = getT(language);
 
   React.useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -78,35 +79,35 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-2 px-4 py-2 rounded-full border border-black/10 dark:border-white/10 bg-gold/10 hover:bg-gold/20 transition-all group shadow-sm"
             >
               <Plane className="w-4 h-4 text-gold group-hover:rotate-12 transition-transform" />
-              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">DRONE</span>
+              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">{t('navDrone')}</span>
             </motion.button>
 
-            <motion.button 
+            <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={onNavigateToDiseaseDetect}
               className="flex items-center gap-2 px-4 py-2 rounded-full border border-black/10 dark:border-white/10 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all group shadow-sm"
             >
               <Scan className="w-4 h-4 text-emerald-500 group-hover:rotate-12 transition-transform" />
-              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">SCAN</span>
+              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">{t('navScan')}</span>
             </motion.button>
 
-            <motion.button 
+            <motion.button
               whileHover={{ y: -2 }}
               onClick={onNavigateToMarket}
               className="flex items-center gap-2 px-4 py-2 rounded-full border border-black/10 dark:border-white/10 hover:bg-gold/10 transition-colors group"
             >
               <TrendingUp className="w-4 h-4 text-gold group-hover:scale-110 transition-transform" />
-              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">MARKET</span>
+              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">{t('navMarket')}</span>
             </motion.button>
 
-            <motion.button 
+            <motion.button
               whileHover={{ y: -2 }}
               onClick={onNavigateToCropGuide}
               className="flex items-center gap-2 px-4 py-2 rounded-full border border-black/10 dark:border-white/10 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors group"
             >
               <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
-              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">GUIDE</span>
+              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">{t('navGuide')}</span>
             </motion.button>
 
             <motion.button
@@ -115,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-2 px-4 py-2 rounded-full border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors group"
             >
               <ShoppingBag className="w-4 h-4 text-gray-500 dark:text-gray-400 group-hover:scale-110 transition-transform" />
-              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">STORE</span>
+              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">{t('navStore')}</span>
             </motion.button>
 
             <motion.button
@@ -124,7 +125,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-2 px-4 py-2 rounded-full border border-black/10 dark:border-white/10 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors group"
             >
               <FileText className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform" />
-              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">SCHEMES</span>
+              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">{t('navSchemes')}</span>
             </motion.button>
 
             <motion.button
@@ -133,7 +134,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-2 px-4 py-2 rounded-full border border-black/10 dark:border-white/10 hover:bg-gold/10 transition-colors group"
             >
               <Receipt className="w-4 h-4 text-gold group-hover:scale-110 transition-transform" />
-              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">EXPENSES</span>
+              <span className="font-jakarta text-[10px] font-bold text-gray-900 dark:text-white tracking-widest uppercase">{t('navExpenses')}</span>
             </motion.button>
           </div>}
 
@@ -265,7 +266,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 transition-colors font-bold flex items-center gap-2"
                       >
-                        <History size={14} /> MY HISTORY
+                        <History size={14} /> {t('myHistory').toUpperCase()}
                       </button>
                       <button
                         onClick={() => {
@@ -274,14 +275,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 transition-colors font-bold flex items-center gap-2"
                       >
-                        <Receipt size={14} /> MY EXPENSES
+                        <Receipt size={14} /> {t('myExpenses').toUpperCase()}
                       </button>
                       {onNavigateToTechStack && (
                         <button
                           onClick={() => { onNavigateToTechStack(); setUserOpen(false); }}
                           className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 transition-colors font-bold flex items-center gap-2"
                         >
-                          <FileText size={14} /> TECH STACK
+                          <FileText size={14} /> {t('techStack').toUpperCase()}
                         </button>
                       )}
                       {user.role === 'admin' && onNavigateToAdmin && (
@@ -289,7 +290,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                           onClick={() => { onNavigateToAdmin(); setUserOpen(false); }}
                           className="w-full text-left px-4 py-2 text-sm text-gold hover:bg-gold/5 transition-colors font-bold flex items-center gap-2"
                         >
-                          <Shield size={14} /> ADMIN PANEL
+                          <Shield size={14} /> {t('adminPanel').toUpperCase()}
                         </button>
                       )}
                       <button
@@ -299,7 +300,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         }}
                         className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-500/5 transition-colors font-bold flex items-center gap-2"
                       >
-                        <LogOut size={14} /> LOGOUT
+                        <LogOut size={14} /> {t('logout').toUpperCase()}
                       </button>
                     </motion.div>
                   )}
@@ -312,7 +313,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={onOpenLogin}
                 className="flex items-center gap-2 px-5 py-2 rounded-full bg-charcoal dark:bg-white text-white dark:text-black font-jakarta text-[10px] font-bold tracking-widest uppercase shadow-lg shadow-black/20"
               >
-                <UserIcon size={14} /> LOGIN
+                <UserIcon size={14} /> {t('login').toUpperCase()}
               </motion.button>
             )}
           </div>

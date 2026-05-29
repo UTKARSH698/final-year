@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, Variants, useInView } from 'framer-motion';
 import { MapPin, Sprout, CloudRain, Users, Wheat, BarChart3, Globe2, Shield } from 'lucide-react';
-import { TRANSLATIONS } from '../constants';
+import { getT } from '../constants';
 import { Language } from '../types';
 
 const useCounter = (end: number, duration: number = 2000, start: boolean = false) => {
@@ -26,16 +26,17 @@ interface HeroProps {
   language: Language;
 }
 
-const STATS = [
-  { icon: Wheat, value: 55, suffix: '+', label: 'Crops Supported', color: 'text-emerald-500' },
-  { icon: BarChart3, value: 95, suffix: '%', label: 'Prediction Accuracy', color: 'text-gold' },
-  { icon: Globe2, value: 15, suffix: '+', label: 'Indian States', color: 'text-blue-500' },
-  { icon: Shield, value: 100, suffix: '%', label: 'Data Privacy', color: 'text-purple-500' },
+const STAT_KEYS = [
+  { icon: Wheat, value: 55, suffix: '+', key: 'cropsSupported' as const, color: 'text-emerald-500' },
+  { icon: BarChart3, value: 95, suffix: '%', key: 'predictionAccuracy' as const, color: 'text-gold' },
+  { icon: Globe2, value: 15, suffix: '+', key: 'indianStates' as const, color: 'text-blue-500' },
+  { icon: Shield, value: 100, suffix: '%', key: 'dataPrivacy' as const, color: 'text-purple-500' },
 ];
 
-const StatsCounter: React.FC = () => {
+const StatsCounter: React.FC<{ language: Language }> = ({ language }) => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: '-100px' });
+  const t = getT(language);
 
   return (
     <motion.div
@@ -46,7 +47,7 @@ const StatsCounter: React.FC = () => {
       className="relative z-10 w-full max-w-4xl mx-auto px-6 mb-24"
     >
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {STATS.map((stat, i) => {
+        {STAT_KEYS.map((stat, i) => {
           const count = useCounter(stat.value, 2000, inView);
           return (
             <div key={i} className="text-center space-y-2">
@@ -55,7 +56,7 @@ const StatsCounter: React.FC = () => {
                 {count}{stat.suffix}
               </div>
               <div className="text-xs font-jakarta text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold">
-                {stat.label}
+                {t(stat.key)}
               </div>
             </div>
           );
@@ -67,7 +68,7 @@ const StatsCounter: React.FC = () => {
 
 export const Hero: React.FC<HeroProps> = ({ language }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const t = TRANSLATIONS[language] || TRANSLATIONS[Language.EN];
+  const t = getT(language);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -186,60 +187,60 @@ export const Hero: React.FC<HeroProps> = ({ language }) => {
           variants={itemVariants}
           className="text-5xl md:text-8xl font-outfit font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-gray-900 to-gray-600 dark:from-white dark:to-white/60 drop-shadow-sm pb-2"
         >
-          {t.heroTitle}
+          {t('heroTitle')}
         </motion.h1>
-        
-        <motion.p 
+
+        <motion.p
           variants={itemVariants}
           className="text-xl md:text-2xl font-inter font-light text-gray-600 dark:text-gray-400"
         >
-          {t.heroSub}
+          {t('heroSub')}
         </motion.p>
 
-        <motion.p 
+        <motion.p
           variants={itemVariants}
           className="max-w-2xl mx-auto text-gray-500 dark:text-gray-500 font-inter leading-relaxed text-lg"
         >
-          {t.desc}
+          {t('desc')}
         </motion.p>
 
         {/* Quick Actions Grid */}
         <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mt-12">
           {[
-            { 
-              icon: Sprout, 
-              label: 'Recommend', 
-              color: 'from-emerald-50 to-white dark:from-emerald-900/50 dark:to-emerald-800/20', 
+            {
+              icon: Sprout,
+              labelKey: 'heroRecommend' as const,
+              color: 'from-emerald-50 to-white dark:from-emerald-900/50 dark:to-emerald-800/20',
               hover: 'from-emerald-100 to-emerald-50 dark:from-emerald-600/30 dark:to-emerald-900/80',
               iconColor: 'text-emerald-800 dark:text-white/70',
-              action: 'Start',
+              actionKey: 'heroStart' as const,
               targetId: 'prediction-engine'
             },
-            { 
-              icon: MapPin, 
-              label: 'Location', 
-              color: 'from-blue-50 to-white dark:from-blue-900/50 dark:to-blue-800/20', 
+            {
+              icon: MapPin,
+              labelKey: 'heroLocation' as const,
+              color: 'from-blue-50 to-white dark:from-blue-900/50 dark:to-blue-800/20',
               hover: 'from-blue-100 to-blue-50 dark:from-blue-600/30 dark:to-blue-900/80',
               iconColor: 'text-blue-800 dark:text-white/70',
-              action: 'Detect',
+              actionKey: 'heroDetect' as const,
               targetId: 'prediction-engine'
             },
             {
               icon: CloudRain,
-              label: 'Weather',
+              labelKey: 'heroWeather' as const,
               color: 'from-slate-100 to-white dark:from-slate-800/50 dark:to-slate-700/20',
               hover: 'from-slate-200 to-slate-100 dark:from-slate-600/30 dark:to-slate-900/80',
               iconColor: 'text-slate-800 dark:text-white/70',
-              action: 'Live',
+              actionKey: 'heroLive' as const,
               targetId: 'weather-section'
             },
             {
               icon: Users,
-              label: 'About Us',
+              labelKey: 'heroAbout' as const,
               color: 'from-amber-50 to-white dark:from-amber-900/40 dark:to-amber-800/10',
               hover: 'from-amber-100 to-amber-50 dark:from-amber-600/25 dark:to-amber-900/70',
               iconColor: 'text-amber-700 dark:text-amber-400/80',
-              action: 'Team',
+              actionKey: 'heroTeam' as const,
               targetId: 'about-us'
             },
           ].map((item, idx) => (
@@ -254,8 +255,8 @@ export const Hero: React.FC<HeroProps> = ({ language }) => {
               <div className="flex flex-col items-center gap-4 relative z-10">
                 <item.icon className={`w-8 h-8 ${item.iconColor} group-hover:text-emerald-900 dark:group-hover:text-white transition-all duration-500 ease-out group-hover:scale-125`} />
                 <div className="text-center">
-                  <div className="text-[10px] font-jakarta text-gray-500 uppercase tracking-widest mb-1 group-hover:text-emerald-900 dark:group-hover:text-white/60 transition-colors font-bold">{item.action}</div>
-                  <div className="text-base font-outfit font-bold text-gray-900 dark:text-gray-200 group-hover:text-black dark:group-hover:text-white transition-colors">{item.label}</div>
+                  <div className="text-[10px] font-jakarta text-gray-500 uppercase tracking-widest mb-1 group-hover:text-emerald-900 dark:group-hover:text-white/60 transition-colors font-bold">{t(item.actionKey)}</div>
+                  <div className="text-base font-outfit font-bold text-gray-900 dark:text-gray-200 group-hover:text-black dark:group-hover:text-white transition-colors">{t(item.labelKey)}</div>
                 </div>
               </div>
             </motion.button>
@@ -264,7 +265,7 @@ export const Hero: React.FC<HeroProps> = ({ language }) => {
       </motion.div>
 
       {/* Animated Stats */}
-      <StatsCounter />
+      <StatsCounter language={language} />
 
       {/* Weather Strip */}
       <motion.div 

@@ -398,7 +398,7 @@ function App() {
               {user && (
                 <>
                   <DigitalTwin />
-                  <PredictionForm onAnalyze={handleAnalysis} isLoading={loading} onLocationUpdate={setUserLocation} />
+                  <PredictionForm onAnalyze={handleAnalysis} isLoading={loading} onLocationUpdate={setUserLocation} language={language} />
                 </>
               )}
               <SupportSection />
